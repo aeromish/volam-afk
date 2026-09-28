@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Võ Lâm AFK H5 - Roguelike Vô Tận</title>
+  <!-- Pixi.js Canvas Engine v7 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+  
+  <style>
+    :root {
+      --color-surface-base: #000000;
+      --color-surface-card: #0a0d13;
+      --color-surface-elevated: #131722;
+      --color-text-primary: #bab097;
+      --color-text-gold: #ffd700;
+      --color-text-muted: #5d5d5d;
+      --color-text-label: #9f906e;
+      --color-border-dark: #2a2216;
+      --color-border-metallic: #5d5d5d;
+      --color-accent-amber: #b45309;
+      --color-danger: #ef4444;
+      --color-success: #22c55e;
+      --font-family-primary: Tahoma, Arial, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family-primary);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--color-surface-base);
+      color: var(--color-text-primary);
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #game-wrapper {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background-color: #07090e;
+      border-left: 1px solid var(--color-border-metallic);
+      border-right: 1px solid var(--color-border-metallic);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.95);
+    }
+
+    /* 1. TOP HEADER */
+    .top-header {
+      background: #10141c;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--color-border-metallic);
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr auto;
+      align-items: center;
+      font-size: 11px;
+      gap: 4px;
+    }
+    .header-stat { color: #fff; font-weight: bold; }
+    .btn-reset-char {
+      background: #3b1111;
+      border: 1px solid #ef4444;
+      color: #ffaaaa;
+      font-size: 9.5px;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 2px;
+    }
+
+    .exp-bar-container {
+      width: 100%;
+      height: 4px;
+      background: #1c202a;
+      position: relative;
+    }
+    .exp-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #38bdf8;
+      transition: width 0.2s ease;
+    }
+
+    #canvas-viewport {
+      width: 100%;
+      height: 200px;
+      background: #020305;
+      border-bottom: 1px solid var(--color-border-metallic);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 2. SECT WHEEL SELECTOR */
+    .sect-wheel {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      padding: 3px 4px;
+      background: #080a0f;
+      border-bottom: 1px solid var(--color-border-dark);
+      position: relative;
+    }
+    .sect-chip {
+      background: #141721;
+      border: 1px solid var(--color-border-metallic);
+      color: var(--color-text-primary);
+      font-size: 9.5px;
+      padding: 3px 0;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .sect-chip.active {
+      background: var(--color-text-label);
+      color: #000;
+      font-weight: bold;
+      border-color: #fff;
+    }
+    .sect-wheel-locked-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      color: #ffd700;
+      font-weight: bold;
+      z-index: 5;
+    }
+
+    .combat-subbars {
+      background: #0d1117;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--color-border-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .subbar-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+    }
+    .subbar-track {
+      flex: 1;
+      height: 6px;
+      background: #1c202a;
+      border: 1px solid #333d4e;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .subbar-fill-hp { height: 100%; width: 100%; background: linear-gradient(90deg, #b91c1c, #22c55e); transition: width 0.15s; }
+    .subbar-fill-rage { height: 100%; width: 0%; background: linear-gradient(90deg, #d97706, #f59e0b); transition: width 0.15s; }
+    .subbar-fill-insight { height: 100%; width: 0%; background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.2s; }
+
+    /* NHIỆM VỤ TÂN THỦ & DÃ TẨU TRACKER */
+    .quest-tracker-bar {
+      background: #0b110d;
+      border-bottom: 1px solid #1f3622;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .quest-badge {
+      background: #14532d;
+      color: #86efac;
+      font-size: 9px;
+      padding: 1px 5px;
+      border: 1px solid #22c55e;
+      white-space: nowrap;
+      font-weight: bold;
+      border-radius: 2px;
+    }
+    .quest-info-block { flex: 1; overflow: hidden; }
+    .quest-name-line {
+      font-size: 10.5px;
+      color: #ffd700;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .quest-desc-sub {
+      font-size: 9.5px;
+      color: #888;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .btn-quest-action {
+      background: #1a202c;
+      border: 1px solid var(--color-border-metallic);
+      color: var(--color-text-primary);
+      font-size: 10px;
+      padding: 4px 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .btn-quest-action.claimable {
+      background: #854d0e;
+      border-color: #eab308;
+      color: #fff;
+      font-weight: bold;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse { from { opacity: 0.8; } to { opacity: 1; filter: drop-shadow(0 0 5px #eab308); } }
+
+    .dashboard-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      background: #121620;
+      border-bottom: 1px solid var(--color-border-metallic);
+    }
+    .dash-btn {
+      background: transparent;
+      border: none;
+      border-right: 1px solid #222938;
+      color: var(--color-text-primary);
+      font-size: 10px;
+      padding: 8px 0;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .dash-btn:last-child { border-right: none; }
+    .dash-btn.active {
+      background: var(--color-text-label);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .tab-view {
+      padding: 8px;
+      min-height: 240px;
+      display: none;
+      background: #07090e;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .tab-view.active { display: block; }
+
+    .panel-header {
+      font-size: 11.5px;
+      color: var(--color-text-label);
+      margin-bottom: 6px;
+      border-bottom: 1px solid #222c3d;
+      padding-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-action {
+      background: #1e2430;
+      border: 1px solid var(--color-border-metallic);
+      color: var(--color-text-primary);
+      padding: 5px 8px;
+      font-size: 10.5px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.2s;
+    }
+    .btn-action:hover { background: #2f384a; }
+    .btn-action-primary {
+      background: #854d0e;
+      border-color: #f59e0b;
+      color: #fff;
+      font-weight: bold;
+    }
+    .btn-action-primary:hover { background: #a16207; }
+
+    .equipped-grid-6 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .equip-slot-box {
+      background: #10141d;
+      border: 1px solid var(--color-border-metallic);
+      padding: 5px;
+      min-height: 48px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      border-radius: 2px;
+    }
+    .equip-slot-box:hover { border-color: #ffd700; }
+    .slot-label-tiny { font-size: 8.5px; color: #777; text-transform: uppercase; }
+    .slot-item-name { font-size: 10px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .slot-act-indicator { position: absolute; top: 2px; right: 4px; font-size: 9px; color: #22c55e; font-weight: bold; }
+
+    /* LƯỚI HÀNH TRANG 3 CỘT RỘNG RÃI */
+    .inventory-grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      background: #090c12;
+      border: 1px solid var(--color-border-dark);
+      padding: 6px;
+      margin-bottom: 8px;
+      min-height: 140px;
+    }
+    .inv-card {
+      background: #121622;
+      border: 1px solid #333d4e;
+      border-radius: 3px;
+      padding: 5px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 56px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .inv-card:hover {
+      border-color: #ffd700;
+      transform: translateY(-1px);
+    }
+    .inv-card.empty {
+      background: #0c0f16;
+      border-color: #1e2430;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333d4e;
+    }
+
+    /* TIỀM NĂNG STAT ROWS */
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+      font-size: 11px;
+      background: #10141d;
+      padding: 4px 8px;
+      border-radius: 2px;
+    }
+    .btn-plus {
+      background: #232a38;
+      border: 1px solid #4a5568;
+      color: #ffd700;
+      width: 28px;
+      height: 22px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 2px;
+    }
+    .btn-plus:hover { background: #374151; }
+
+    /* LÒ RÈN & TỐNG KIM */
+    .forge-panel {
+      background: #11151f;
+      border: 1px solid var(--color-border-metallic);
+      padding: 8px;
+      text-align: center;
+      margin-bottom: 8px;
+      border-radius: 3px;
+    }
+
+    /* LOG STREAM */
+    #combat-log-stream {
+      height: 70px;
+      overflow-y: auto;
+      background: #030406;
+      border-top: 1px solid var(--color-border-metallic);
+      padding: 4px 8px;
+      font-size: 9.5px;
+      line-height: 14px;
+      color: #7d8590;
+      font-family: monospace;
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      z-index: 2000;
+    }
+    
+    /* MODAL SO SÁNH TRANG BỊ 2 CỘT */
+    .compare-box {
+      width: 100%;
+      background: #0d1017;
+      border: 2px solid var(--color-text-label);
+      border-radius: 4px;
+      padding: 10px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.95);
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .compare-column {
+      background: #141824;
+      border: 1px solid #2b3548;
+      border-radius: 3px;
+      padding: 8px;
+      font-size: 10.5px;
+    }
+    .diff-pos { color: #22c55e; font-weight: bold; }
+    .diff-neg { color: #ef4444; font-weight: bold; }
+    .diff-neutral { color: #888; }
+
+    /* ROGUELIKE DRAFT MODAL */
+    .draft-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin: 10px 0;
+    }
+    .draft-card {
+      background: #161b26;
+      border: 1px solid var(--color-border-metallic);
+      border-radius: 3px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      min-height: 135px;
+    }
+    .draft-card:hover { border-color: #ffd700; transform: translateY(-2px); }
+
+    /* DIALOG HỘP THOẠI */
+    .dialogue-card {
+      width: 100%;
+      background: #11141c;
+      border: 2px solid var(--color-text-label);
+      border-radius: 4px;
+      padding: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+  <!-- TOP STATS HEADER -->
+  <div class="top-header">
+    <div>Hiệp Khách: <span class="header-stat" id="ui-hero-name">Độc Cô Kiếm</span> (<span id="ui-lvl" style="color:#ffd700;">Lv.1</span>)</div>
+    <div>Bạc: <span class="header-stat" id="ui-silver">100</span></div>
+    <div>H.Tinh: <span class="header-stat" id="ui-crystals" style="color:#a855f7;">5</span></div>
+    <button class="btn-reset-char" onclick="openResetConfirmModal()">Tạo Lại</button>
+  </div>
+  <div class="exp-bar-container">
+    <div class="exp-bar-fill" id="ui-exp-bar"></div>
+  </div>
+
+  <!-- PIXIJS CANVAS COMBAT -->
+  <div id="canvas-viewport"></div>
+
+  <!-- VÒNG CHỌN NGŨ PHÁI -->
+  <div class="sect-wheel" id="sect-wheel-container">
+    <div class="sect-wheel-locked-overlay" id="sect-locked-overlay">
+      🔒 CẦN ĐẠT CẤP 10 ĐỂ BÁI SƯ MÔN PHÁI
+    </div>
+    <button class="sect-chip active" id="chip-thieu_lam" onclick="switchSect('thieu_lam')">Thiếu Lâm<br><small style="color:#ffd700;">KIM</small></button>
+    <button class="sect-chip" id="chip-duong_mon" onclick="switchSect('duong_mon')">Đường Môn<br><small style="color:#22c55e;">MỘC</small></button>
+    <button class="sect-chip" id="chip-nga_mi" onclick="switchSect('nga_mi')">Nga Mi<br><small style="color:#38bdf8;">THỦY</small></button>
+    <button class="sect-chip" id="chip-cai_bang" onclick="switchSect('cai_bang')">Cái Bang<br><small style="color:#ef4444;">HỎA</small></button>
+    <button class="sect-chip" id="chip-vo_dang" onclick="switchHeroSect('vo_dang')">Võ Đang<br><small style="color:#b45309;">THỔ</small></button>
+  </div>
+
+  <!-- BARS: HP, RAGE, INSIGHT -->
+  <div class="combat-subbars">
+    <div class="subbar-row">
+      <span style="width:48px; color:#aaa;">Sinh Lực:</span>
+      <div class="subbar-track"><div class="subbar-fill-hp" id="ui-hp-fill"></div></div>
+      <span id="ui-hp-text" style="width:65px; text-align:right; font-family:monospace;">800/800</span>
+    </div>
+    <div class="subbar-row">
+      <span style="width:48px; color:#f59e0b;">Nộ Khí:</span>
+      <div class="subbar-track"><div class="subbar-fill-rage" id="ui-rage-fill"></div></div>
+      <span id="ui-rage-text" style="width:65px; text-align:right; color:#f59e0b; font-family:monospace;">0%</span>
+    </div>
+    <div class="subbar-row">
+      <span style="width:48px; color:#818cf8;">Ngộ Tính:</span>
+      <div class="subbar-track"><div class="subbar-fill-insight" id="ui-insight-fill"></div></div>
+      <span id="ui-insight-text" style="width:65px; text-align:right; color:#818cf8; font-family:monospace;">0/100</span>
+    </div>
+  </div>
+
+  <!-- NHIỆM VỤ TÂN THỦ & DÃ TẨU TRACKER -->
+  <div class="quest-tracker-bar">
+    <div class="quest-badge" id="ui-quest-badge">TÂN THỦ</div>
+    <div class="quest-info-block">
+      <div class="quest-name-line" id="ui-quest-title">Nhiệm vụ: Đang nạp...</div>
+      <div class="quest-desc-sub" id="ui-quest-desc">Mục tiêu...</div>
+    </div>
+    <button class="btn-quest-action" id="ui-quest-btn" onclick="handleQuestButtonAction()">Đi Ngay</button>
+  </div>
+
+  <!-- DASHBOARD TABS -->
+  <div class="dashboard-tabs">
+    <button class="dash-btn active" onclick="navigateTab('tab-afk')">VƯỢT ẢI</button>
+    <button class="dash-btn" onclick="navigateTab('tab-stats')">TIỀM NĂNG</button>
+    <button class="dash-btn" onclick="navigateTab('tab-gear')">TRANG BỊ</button>
+    <button class="dash-btn" onclick="navigateTab('tab-forge')">LÒ RÈN</button>
+    <button class="dash-btn" onclick="navigateTab('tab-pvp')">TỐNG KIM</button>
+  </div>
+
+  <!-- TAB 1: VƯỢT ẢI -->
+  <div class="tab-view active" id="tab-afk">
+    <div class="panel-header">
+      <span id="ui-stage-name">Bản Đồ: Ba Lăng Huyện (Ải 1)</span>
+      <span id="ui-wave-counter" style="color:#ffd700;">Tiến Độ: 0/5 Quái</span>
+    </div>
+    <div style="background:#11151f; border:1px solid var(--color-border-metallic); padding:8px; border-radius:3px; margin-bottom:8px;">
+      <div style="font-size:11px; margin-bottom:4px;">
+        Kẻ địch: <b id="ui-mob-name" style="color:#fff;">Heo Rừng Ba Lăng</b> <span id="ui-mob-elem" style="color:#22c55e;">[MỘC]</span>
+      </div>
+      <div style="font-size:10px; color:#888; margin-bottom:6px;">
+        Treo máy tự động tiêu diệt quái. Quái rơi Bạc, EXP, Huyền Tinh và Trang Bị.
+      </div>
+      <button class="btn-action btn-action-primary" id="boss-challenge-btn" style="width:100%; display:none; padding:7px;" onclick="challengeBoss()">KHIÊU CHIẾN BOSS ĐỊA BÀN</button>
+    </div>
+
+    <div class="panel-header"><span>DUNG HỢP HÓA CẢNH ĐÃ MỞ:</span></div>
+    <div id="ui-active-fusions-list" style="font-size:10px; color:#aaa; line-height:16px;">Chưa có chiêu thức Hóa Cảnh nào được dung hợp.</div>
+  </div>
+
+  <!-- TAB 2: TIỀM NĂNG -->
+  <div class="tab-view" id="tab-stats">
+    <div class="panel-header">
+      <span>BẢNG TIỀM NĂNG (<span id="ui-sect-title">Thiếu Lâm</span>)</span>
+      <span>Điểm dư: <b id="ui-free-pts" style="color:#ffd700; font-size:13px;">0</b></span>
+    </div>
+
+    <div class="stat-row">
+      <span>Sức Mạnh (Công +2, Giáp): <b id="ui-str" style="color:#fff;">10</b></span>
+      <button class="btn-plus" onclick="addPoint('str')">+</button>
+    </div>
+    <div class="stat-row">
+      <span>Thân Pháp (Né Tránh, Chí Mạng): <b id="ui-dex" style="color:#fff;">10</b></span>
+      <button class="btn-plus" onclick="addPoint('dex')">+</button>
+    </div>
+    <div class="stat-row">
+      <span>Sinh Khí (Máu +25): <b id="ui-vit" style="color:#fff;">10</b></span>
+      <button class="btn-plus" onclick="addPoint('vit')">+</button>
+    </div>
+    <div class="stat-row">
+      <span>Nội Công (Uy Lực Chiêu): <b id="ui-int" style="color:#fff;">10</b></span>
+      <button class="btn-plus" onclick="addPoint('int')">+</button>
+    </div>
+
+    <button class="btn-action" style="width:100%; margin-top:6px; background:#2a1a1a; border-color:#ef4444; color:#ffaaaa;" onclick="resetPotentialPoints()">TẨY ĐIỂM TIỀM NĂNG (HOÀN ĐIỂM DƯ)</button>
+
+    <div class="panel-header" style="margin-top:12px;"><span>BÍ KÍP NỘI CÔNG KẾ THỪA</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="ui-passives-grid"></div>
+  </div>
+
+  <!-- TAB 3: TRANG BỊ & TÚI ĐỒ (3 CỘT RỘNG RÃI) -->
+  <div class="tab-view" id="tab-gear">
+    <div class="panel-header">
+      <span>TRANG BỊ ĐANG MẶC (6 VỊ TRÍ)</span>
+      <span id="ui-active-hidden-count" style="color:#ffd700;">Dòng Ẩn: 0 Kích Hoạt</span>
+    </div>
+
+    <div class="equipped-grid-6">
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('weapon')">
+        <span class="slot-label-tiny">VŨ KHÍ</span>
+        <span class="slot-item-name" id="slot-name-weapon">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-weapon"></span>
+      </div>
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('helm')">
+        <span class="slot-label-tiny">NÓN (MÃO)</span>
+        <span class="slot-item-name" id="slot-name-helm">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-helm"></span>
+      </div>
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('armor')">
+        <span class="slot-label-tiny">ÁO (GIÁP)</span>
+        <span class="slot-item-name" id="slot-name-armor">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-armor"></span>
+      </div>
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('ring')">
+        <span class="slot-label-tiny">NHẪN</span>
+        <span class="slot-item-name" id="slot-name-ring">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-ring"></span>
+      </div>
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('boots')">
+        <span class="slot-label-tiny">GIÀY (HÀI)</span>
+        <span class="slot-item-name" id="slot-name-boots">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-boots"></span>
+      </div>
+      <div class="equip-slot-box" onclick="inspectEquippedSlot('amulet')">
+        <span class="slot-label-tiny">DÂY CHUYỀN</span>
+        <span class="slot-item-name" id="slot-name-amulet">Trống</span>
+        <span class="slot-act-indicator" id="slot-act-amulet"></span>
+      </div>
+    </div>
+
+    <div class="panel-header">
+      <span>TÚI HÀNH TRANG (<span id="ui-inv-capacity">0/18</span>)</span>
+      <div style="display:flex; gap:4px;">
+        <button class="btn-action" style="padding:2px 6px; font-size:9.5px;" onclick="quickSellNormalGear()">Bán Đồ Thường</button>
+        <button class="btn-action" style="padding:2px 6px; font-size:9.5px;" onclick="sortInventory()">Sắp Xếp</button>
+      </div>
+    </div>
+
+    <div class="inventory-grid-3col" id="ui-inventory-grid"></div>
+  </div>
+
+  <!-- TAB 4: LÒ RÈN HUYỀN TINH -->
+  <div class="tab-view" id="tab-forge">
+    <div class="panel-header">
+      <span>LÒ RÈN HUYỀN TINH</span>
+      <span>H.Tinh: <b id="ui-forge-crystals" style="color:#a855f7;">5</b></span>
+    </div>
+
+    <div class="forge-panel">
+      <div style="font-size:10px; color:#888;">MỤC TIÊU CƯỜNG HÓA:</div>
+      <div style="font-size:13px; font-weight:bold; color:#ffd700; margin:4px 0;" id="ui-forge-target-name">Chưa chọn món nào</div>
+      <div style="font-size:10.5px; margin-bottom:8px;" id="ui-forge-stats-gain">Tăng +10% chỉ số cơ bản của trang bị</div>
+      <div style="font-size:11px; margin-bottom:10px;">
+        Chi phí: <b id="ui-forge-cost-silver" style="color:#fff;">300 Bạc</b> + <b style="color:#a855f7;">1 Huyền Tinh</b>
+      </div>
+      <button class="btn-action btn-action-primary" style="width:100%; padding:7px;" onclick="executeEnhance()">CƯỜNG HÓA NGAY</button>
+    </div>
+
+    <div class="panel-header"><span>CHỌN MÓN ĐANG MẶC ĐỂ RÈN:</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:10px;" id="ui-forge-selector-list"></div>
+
+    <div class="panel-header"><span>TÍNH NĂNG BỔ TRỢ LÒ RÈN:</span></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px;">
+      <button class="btn-action" onclick="forgeCraftNewItem()">Đúc Đồ Mới<br><small style="color:#888;">(500 Bạc)</small></button>
+      <button class="btn-action" onclick="forgeRerollHidden()">Tẩy Dòng Ẩn<br><small style="color:#888;">(1 H.Tinh)</small></button>
+      <button class="btn-action" onclick="forgeCycleElement()">Chuyển Hệ<br><small style="color:#888;">(400 Bạc)</small></button>
+    </div>
+  </div>
+
+  <!-- TAB 5: TỐNG KIM -->
+  <div class="tab-view" id="tab-pvp">
+    <div class="panel-header">
+      <span>QUÂN DOANH TỐNG KIM</span>
+      <span style="color:#38bdf8;">Đấu Trường 1v1</span>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr auto 1fr; align-items:center; background:#11141c; padding:10px; border:1px solid var(--color-border-metallic); border-radius:3px; text-align:center; margin-bottom:10px;">
+      <div>
+        <div style="color:#38bdf8; font-weight:bold;">Phe Tống</div>
+        <div id="ui-pvp-player-sect" style="font-size:11px;">Thiếu Lâm [KIM]</div>
+      </div>
+      <div style="color:#ef4444; font-weight:bold; font-size:14px;">VS</div>
+      <div>
+        <div style="color:#f87171; font-weight:bold;">Phe Kim</div>
+        <div id="ui-pvp-enemy-sect" style="color:#22c55e; font-size:11px;">Đường Môn [MỘC]</div>
+      </div>
+    </div>
+    <button class="btn-action btn-action-primary" id="btn-pvp-start" style="width:100%; padding:8px;" onclick="startPvpDuel()">XUẤT TRẬN TỐNG KIM</button>
+  </div>
+
+  <!-- LOG STREAM -->
+  <div id="combat-log-stream"></div>
+
+  <!-- MODAL: SO SÁNH TRANG BỊ (2 CỘT: ĐANG MẶC VS MỚI) -->
+  <div class="modal-backdrop" id="compare-modal">
+    <div class="compare-box">
+      <div style="font-size:12px; font-weight:bold; color:#ffd700; border-bottom:1px solid #333; padding-bottom:4px; margin-bottom:8px; display:flex; justify-content:space-between;">
+        <span>SO SÁNH TRANG BỊ</span>
+        <span id="cmp-slot-title" style="color:#9f906e;">VŨ KHÍ</span>
+      </div>
+
+      <div class="compare-grid">
+        <!-- Cột Đang Mặc -->
+        <div class="compare-column" id="cmp-equipped-col">
+          <div style="color:#888; font-size:9.5px; border-bottom:1px solid #222; padding-bottom:2px; margin-bottom:4px;">ĐANG MẶC TRÊN NGƯỜI</div>
+          <div id="cmp-eq-content">Chưa mặc món nào</div>
+        </div>
+
+        <!-- Cột Trang Bị Mới Trong Túi -->
+        <div class="compare-column" id="cmp-new-col" style="border-color:#ffd700;">
+          <div style="color:#ffd700; font-size:9.5px; border-bottom:1px solid #222; padding-bottom:2px; margin-bottom:4px;">TRANG BỊ MỚI (TÚI)</div>
+          <div id="cmp-new-content">...</div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <button class="btn-action btn-action-primary" id="btn-cmp-equip" onclick="confirmEquipFromCompare()">MẶC THAY THẾ</button>
+        <button class="btn-action" style="color:#ef4444;" id="btn-cmp-sell" onclick="confirmSellFromCompare()">BÁN LẤY BẠC</button>
+      </div>
+      <button class="btn-action" style="width:100%; margin-top:5px; background:#181818;" onclick="closeCompareModal()">ĐÓNG</button>
+    </div>
+  </div>
+
+  <!-- MODAL: XEM TRANG BỊ ĐANG MẶC -->
+  <div class="modal-backdrop" id="equipped-inspect-modal">
+    <div class="compare-box">
+      <div style="font-size:12px; font-weight:bold; color:#ffd700; border-bottom:1px solid #333; padding-bottom:4px; margin-bottom:8px; display:flex; justify-content:space-between;">
+        <span id="eq-ins-name">Tên Trang Bị</span>
+        <span id="eq-ins-enhance" style="color:#ffd700;">+0</span>
+      </div>
+      <div id="eq-ins-body" style="font-size:11px; line-height:17px; margin-bottom:10px;"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <button class="btn-action" onclick="unequipCurrentInspected()">Tháo Ra Bỏ Túi</button>
+        <button class="btn-action btn-action-primary" onclick="goToForgeWithInspected()">Đến Lò Rèn</button>
+      </div>
+      <button class="btn-action" style="width:100%; margin-top:5px; background:#181818;" onclick="closeEquippedInspectModal()">ĐÓNG</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ROGUELIKE DRAFT 3 BÍ KÍP -->
+  <div class="modal-backdrop" id="draft-modal">
+    <div class="dialogue-card" style="max-width:440px;">
+      <h3 style="color:#ffd700; font-size:13px; letter-spacing:1px;">CƠ DUYÊN NGỘ TÍNH</h3>
+      <p style="font-size:10px; color:#888; margin-top:2px;">Lĩnh ngộ 1 tuyệt kỹ bí kíp để tiếp tục đột phá tầng ải</p>
+      <div class="draft-grid-3" id="draft-cards-box"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: ĐỐI THOẠI NPC -->
+  <div class="modal-backdrop" id="dialogue-popup">
+    <div class="dialogue-card">
+      <div style="font-weight:bold; color:#ffd700; font-size:13px; margin-bottom:6px;" id="npc-title">Trưởng Thôn Ba Lăng Huyện</div>
+      <div style="font-size:11px; color:#bab097; text-align:left; line-height:18px; margin-bottom:12px;" id="npc-speech">...</div>
+      <button class="btn-action btn-action-primary" style="width:100%; padding:7px;" onclick="confirmNpcDialogue()">LĨNH Ý & TIẾP NHẬN</button>
+    </div>
+  </div>
+
+  <!-- MODAL: BÁI SƯ CẤP 10 -->
+  <div class="modal-backdrop" id="bai-su-popup">
+    <div class="dialogue-card" style="border-color:#ffd700;">
+      <div style="font-weight:bold; color:#ffd700; font-size:13px; margin-bottom:6px;">ĐẠI LỄ BÁI SƯ MÔN PHÁI (CẤP 10)</div>
+      <p style="font-size:10.5px; color:#bab097; margin-bottom:10px;">Chúc mừng đã đạt Cấp 10! Hãy chọn tông môn khai đạo:</p>
+      <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:4px; margin-bottom:10px;" id="bai-su-grid">
+        <button class="sect-chip active" onclick="selectCeremonySect('thieu_lam')">Thiếu Lâm<br><small>KIM</small></button>
+        <button class="sect-chip" onclick="selectCeremonySect('duong_mon')">Đường Môn<br><small>MỘC</small></button>
+        <button class="sect-chip" onclick="selectCeremonySect('nga_mi')">Nga Mi<br><small>THỦY</small></button>
+        <button class="sect-chip" onclick="selectCeremonySect('cai_bang')">Cái Bang<br><small>HỎA</small></button>
+        <button class="sect-chip" onclick="selectCeremonySect('vo_dang')">Võ Đang<br><small>THỔ</small></button>
+      </div>
+      <button class="btn-action btn-action-primary" style="width:100%; padding:7px;" onclick="confirmSectCeremony()">CHÍNH THỨC NHẬP MÔN</button>
+    </div>
+  </div>
+
+  <!-- MODAL: OFFLINE HARVEST -->
+  <div class="modal-backdrop" id="offline-popup">
+    <div class="dialogue-card">
+      <h3 style="color:#9f906e; margin-bottom:6px;">BẾ QUAN TU LUYỆN</h3>
+      <p id="offline-desc" style="font-size:11px; margin-bottom:10px;"></p>
+      <button class="btn-action btn-action-primary" style="width:100%;" onclick="closeOfflinePopup()">LĨNH THƯỞNG</button>
+    </div>
+  </div>
+
+  <!-- MODAL: XÁC NHẬN TẨY TỦY (KHÔNG DÙNG CONFIRM) -->
+  <div class="modal-backdrop" id="custom-confirm-modal">
+    <div class="dialogue-card" style="border-color:#ef4444;">
+      <h3 style="color:#ef4444; margin-bottom:6px;" id="confirm-title">Xác Nhận</h3>
+      <p id="confirm-msg" style="font-size:11px; margin-bottom:12px; color:#bab097;">...</p>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+        <button class="btn-action" onclick="closeConfirmModal()">Hủy Bỏ</button>
+        <button class="btn-action" style="background:#7f1d1d; border-color:#ef4444; color:#fff;" id="btn-confirm-ok">Đồng Ý</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ==========================================================================
+     1. ENGINE DỮ LIỆU & QUY TẮC NGŨ HÀNH
+     ========================================================================== */
+  function safeNum(val, fallback = 0) {
+    const n = Number(val);
+    return isNaN(n) ? fallback : n;
+  }
+
+  const ELEM_COLORS = {
+    VO_HE: 0xaaaaaa,
+    KIM: 0xffd700,
+    MOC: 0x22c55e,
+    THUY: 0x38bdf8,
+    HOA: 0xef4444,
+    THO: 0xb45309
+  };
+
+  const COUNTERS = { KIM: "MOC", MOC: "THO", THO: "THUY", THUY: "HOA", HOA: "KIM" };
+  const GENERATES = { KIM: "THUY", THUY: "MOC", MOC: "HOA", HOA: "THO", THO: "KIM" };
+
+  const RARITY_CONFIG = {
+    THUONG:    { name: "Thường",    color: "#a3a3a3", statMult: 1.0,  maxHidden: 0 },
+    HIEM:      { name: "Hiếm",      color: "#38bdf8", statMult: 1.3,  maxHidden: 1 },
+    HOANG_KIM: { name: "Hoàng Kim", color: "#ffd700", statMult: 1.8,  maxHidden: 1 },
+    BACH_KIM:  { name: "Bạch Kim",  color: "#ec4899", statMult: 2.5,  maxHidden: 2 }
+  };
+
+  const SECT_CONFIG = {
+    thieu_lam: { name: "Thiếu Lâm", elem: "KIM",  color: ELEM_COLORS.KIM,  ultName: "Sư Tử Hống",         ultMult: 2.8 },
+    duong_mon: { name: "Đường Môn", elem: "MOC",  color: ELEM_COLORS.MOC,  ultName: "Bão Vũ Lê Hoa",      ultMult: 3.2 },
+    nga_mi:    { name: "Nga Mi",    elem: "THUY", color: ELEM_COLORS.THUY, ultName: "Băng Tâm Tiên Tử",  ultMult: 2.2 },
+    cai_bang:  { name: "Cái Bang",  elem: "HOA",  color: ELEM_COLORS.HOA,  ultName: "Hàng Long Thập Bát", ultMult: 3.4 },
+    vo_dang:   { name: "Võ Đang",   elem: "THO",  color: ELEM_COLORS.THO,  ultName: "Vô Ngã Vô Kiếm",     ultMult: 3.0 }
+  };
+
+  const PASSIVE_DB = [
+    { id: "tl_dck", sect: "thieu_lam", name: "Dịch Cân Kinh", desc: "Giảm 15% sát thương nhận vào" },
+    { id: "dm_tm",  sect: "duong_mon", name: "Tâm Ma Thần Công", desc: "+15% bạo kích, gây kịch độc" },
+    { id: "nm_bt",  sect: "nga_mi",    name: "Băng Tâm", desc: "Hút 10% sinh lực trên đòn đánh" },
+    { id: "cb_td",  sect: "cai_bang",  name: "Túy Điệp", desc: "25% đòn đánh nổ hỏa diễm +60% ST" },
+    { id: "vd_tv",  sect: "vo_dang",   name: "Tọa Vọng Vô Vi", desc: "Dùng MP đỡ 50% sát thương thay HP" }
+  ];
+
+  const NOVICE_QUESTS = [
+    {
+      id: 0,
+      title: "Nhiệm vụ 1: Thỉnh An Trưởng Thôn",
+      badge: "TÂN THỦ",
+      type: "TALK",
+      npcName: "Trưởng Thôn Ba Lăng Huyện",
+      speech: "Chào mừng Hiệp Sĩ đến với Ba Lăng Huyện! Lão phu tặng ngươi Thanh Phong Kiếm và Hoàng Ngọc Bội, hãy mau mặc vào để xuất thôn hành hiệp!",
+      desc: "Gặp Trưởng Thôn Ba Lăng Huyện",
+      targetCount: 1,
+      rewardText: "+500 Bạc, Lên Cấp 2, 2 Món Trang Bị",
+      reward: { silver: 500, grantLevel: 2, starterGear: true }
+    },
+    {
+      id: 1,
+      title: "Nhiệm vụ 2: Trừ Hại Heo Rừng",
+      badge: "TÂN THỦ",
+      type: "KILL_MOB",
+      desc: "Tiêu diệt 5 quái dã ngoại Ba Lăng Huyện",
+      targetCount: 5,
+      rewardText: "+600 Bạc, +5 Huyền Tinh",
+      reward: { silver: 600, crystals: 5 }
+    },
+    {
+      id: 2,
+      title: "Nhiệm vụ 3: Mặc Trang Bị Vào Người",
+      badge: "TÂN THỦ",
+      type: "EQUIP_ITEM",
+      desc: "Vào tab Trang Bị, so sánh và bấm [Mặc Vào]",
+      targetCount: 1,
+      rewardText: "+800 Bạc, +5 Huyền Tinh",
+      reward: { silver: 800, crystals: 5 }
+    },
+    {
+      id: 3,
+      title: "Nhiệm vụ 4: Tăng Cường Thể Phách",
+      badge: "TÂN THỦ",
+      type: "ALLOCATE_STAT",
+      desc: "Vào tab Tiềm Năng, cộng ít nhất 1 điểm tiềm năng",
+      targetCount: 1,
+      rewardText: "+1,000 Bạc, +5 Điểm Tiềm Năng",
+      reward: { silver: 1000, freePoints: 5 }
+    },
+    {
+      id: 4,
+      title: "Nhiệm vụ 5: Cường Hóa Lên +1",
+      badge: "TÂN THỦ",
+      type: "ENHANCE_ITEM",
+      desc: "Vào tab Lò Rèn, cường hóa 1 trang bị lên +1",
+      targetCount: 1,
+      rewardText: "+1,200 Bạc, +5 Huyền Tinh",
+      reward: { silver: 1200, crystals: 5 }
+    },
+    {
+      id: 5,
+      title: "Nhiệm vụ 6: Rèn Luyện Đạt Cấp 10",
+      badge: "TÂN THỦ",
+      type: "REACH_LEVEL",
+      desc: "Treo máy đánh quái thăng cấp đạt Cấp 10",
+      targetCount: 10,
+      rewardText: "+2,500 Bạc, Mở Bái Sư Môn Phái",
+      reward: { silver: 2500 }
+    },
+    {
+      id: 6,
+      title: "Nhiệm vụ 7: Kích Hoạt Dòng Ẩn Ngũ Hành",
+      badge: "TÂN THỦ",
+      type: "ACTIVATE_HIDDEN",
+      desc: "Mặc trang bị tương sinh để kích hoạt 1 Dòng Ẩn",
+      targetCount: 1,
+      rewardText: "+3,000 Bạc, +8 Huyền Tinh",
+      reward: { silver: 3000, crystals: 8 }
+    },
+    {
+      id: 7,
+      title: "Nhiệm vụ 8: Trảm Thủ Lĩnh Địa Bàn",
+      badge: "TÂN THỦ",
+      type: "KILL_BOSS",
+      desc: "Khiêu chiến và hạ gục 1 Boss Địa Bàn dã ngoại",
+      targetCount: 1,
+      rewardText: "+5,000 Bạc, Mở Khóa Dã Tẩu Bất Tận",
+      reward: { silver: 5000 }
+    }
+  ];
+
+  function getDefaultState() {
+    return {
+      charName: "Độc Cô Kiếm",
+      level: 1,
+      exp: 0,
+      silver: 100,
+      crystals: 5,
+      merit: 0,
+      activeSect: "thieu_lam",
+      hasJoinedSect: false,
+      rage: 0,
+      insight: 0,
+      insightMax: 100,
+      stage: 1,
+      kills: 0,
+      isBossFight: false,
+      borrowedPassiveId: null,
+      equipped: { weapon: null, helm: null, armor: null, ring: null, boots: null, amulet: null },
+      inventory: [],
+      questIndex: 0,
+      questProgress: 0,
+      daTauLoopCount: 0,
+      lastSaved: Date.now(),
+      sectProfiles: {
+        thieu_lam: { str: 10, dex: 10, vit: 10, int: 10, free: 5 },
+        duong_mon: { str: 10, dex: 10, vit: 10, int: 10, free: 5 },
+        nga_mi:    { str: 10, dex: 10, vit: 10, int: 10, free: 5 },
+        cai_bang:  { str: 10, dex: 10, vit: 10, int: 10, free: 5 },
+        vo_dang:   { str: 10, dex: 10, vit: 10, int: 10, free: 5 }
+      }
+    };
+  }
+
+  let G = getDefaultState();
+  let enemy = { name: "Heo Rừng Ba Lăng", elem: "MOC", maxHp: 180, hp: 180, isBoss: false };
+  let pvpMode = false;
+  let pvpEnemy = { name: "Hoàn Nhan Cửu", sect: "duong_mon", elem: "MOC", maxHp: 1800, hp: 1800 };
+  let pendingCeremonySect = "thieu_lam";
+
+  let compareState = { invIndex: null, item: null };
+  let inspectEquippedSlotKey = null;
+  let currentForgeSlot = "weapon";
+  let isDrafting = false;
+
+  function sanitizeState(loaded) {
+    const def = getDefaultState();
+    if (!loaded || typeof loaded !== "object") return def;
+    const res = Object.assign(def, loaded);
+
+    if (!res.sectProfiles) res.sectProfiles = {};
+    for (const key of ["thieu_lam", "duong_mon", "nga_mi", "cai_bang", "vo_dang"]) {
+      if (!res.sectProfiles[key]) {
+        res.sectProfiles[key] = { str: 10, dex: 10, vit: 10, int: 10, free: 5 };
+      } else {
+        res.sectProfiles[key].str = safeNum(res.sectProfiles[key].str, 10);
+        res.sectProfiles[key].dex = safeNum(res.sectProfiles[key].dex, 10);
+        res.sectProfiles[key].vit = safeNum(res.sectProfiles[key].vit, 10);
+        res.sectProfiles[key].int = safeNum(res.sectProfiles[key].int, 10);
+        res.sectProfiles[key].free = safeNum(res.sectProfiles[key].free, 0);
+      }
+    }
+
+    if (!res.equipped || typeof res.equipped !== "object") {
+      res.equipped = { weapon: null, helm: null, armor: null, ring: null, boots: null, amulet: null };
+    }
+    if (!Array.isArray(res.inventory)) res.inventory = [];
+
+    res.level = Math.max(1, safeNum(res.level, 1));
+    res.exp = safeNum(res.exp, 0);
+    res.silver = safeNum(res.silver, 100);
+    res.crystals = safeNum(res.crystals, 5);
+    res.stage = Math.max(1, safeNum(res.stage, 1));
+    res.kills = safeNum(res.kills, 0);
+    res.questIndex = safeNum(res.questIndex, 0);
+    res.questProgress = safeNum(res.questProgress, 0);
+
+    return res;
+  }
+
+  const ITEM_NAMES_POOL = {
+    weapon: ["Thanh Phong Kiếm", "Tàn Hồng Kiếm", "Cửu Hoàn Trượng", "Long Đao", "Truy Hồn Tiêu"],
+    helm:   ["Khăn Vải", "Bát Bảo Mão", "Định Quốc Khôi", "Đạo Mão"],
+    armor:  ["Áo Vải Thô", "Sa Trường Y", "Cà Sa Phật Quang", "Thái Cực Bào"],
+    ring:   ["Nhẫn Đồng", "Huyết Thạch Giới", "An Bang Giới Chỉ"],
+    boots:  ["Giày Rơm", "Phi Vân Ngoa", "Cửu Châu Hài"],
+    amulet: ["Mặt Ngọc Nhỏ", "Băng Tinh Liên", "Bạch Hổ Bội"]
+  };
+
+  function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
+    const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
+    const elem = elems[Math.floor(Math.random() * elems.length)];
+    const names = ITEM_NAMES_POOL[slot] || ["Bảo Vật"];
+    const name = names[Math.floor(Math.random() * names.length)];
+
+    const qConfig = RARITY_CONFIG[quality] || RARITY_CONFIG.HIEM;
+    let baseAtk = 0;
+    let baseDef = 0;
+    let baseHp = 0;
+
+    if (slot === "weapon") baseAtk = Math.floor((25 + minLvl * 6) * qConfig.statMult);
+    else if (slot === "armor" || slot === "helm") baseDef = Math.floor((12 + minLvl * 3) * qConfig.statMult);
+    else baseHp = Math.floor((60 + minLvl * 22) * qConfig.statMult);
+
+    let hiddenStatText = "Băng Sát Ngoại Công +45";
+    if (slot === "armor") hiddenStatText = "Kháng Tất Cả +15%";
+    else if (slot === "helm") hiddenStatText = "Thời Gian Phục Hồi -20%";
+    else if (slot === "ring") hiddenStatText = "Bạo Kích +10%";
+    else if (slot === "boots") hiddenStatText = "Né Tránh +12%";
+    else if (slot === "amulet") hiddenStatText = "Hút Sinh Lực +8%";
+
+    return {
+      id: "item_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+      name: name,
+      slot: slot,
+      quality: quality,
+      element: elem,
+      levelReq: minLvl,
+      enhance: 0,
+      stats: { atk: baseAtk, def: baseDef, hp: baseHp },
+      hiddenStat: hiddenStatText
+    };
+  }
+
+  function grantStarterEquipment() {
+    const starterWeapon = createRandomItem("weapon", "HIEM", 1);
+    starterWeapon.name = "Thanh Phong Kiếm";
+    starterWeapon.element = "KIM";
+
+    const starterAmulet = createRandomItem("amulet", "HIEM", 1);
+    starterAmulet.name = "Hoàng Ngọc Bội";
+    starterAmulet.element = "THO"; // Thổ sinh Kim -> kích dòng ẩn ngay khi mặc cả 2!
+
+    G.inventory.push(starterWeapon);
+    G.inventory.push(starterAmulet);
+    renderInventoryUI();
+    addCombatLog(`<b style="color:#ffd700;">Nhận được Kiếm [KIM] và Bội [THỔ] khởi đầu trong túi đồ!</b>`);
+  }
+
+  function resolveEquippedAttributes() {
+    let activeCount = 0;
+    const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+    const triggerSourceFor = {
+      weapon: "amulet",
+      helm:   "weapon",
+      armor:  "helm",
+      ring:   "armor",
+      boots:  "ring",
+      amulet: "boots"
+    };
+
+    slots.forEach(slot => {
+      const item = G.equipped[slot];
+      const indicator = document.getElementById(`slot-act-${slot}`);
+
+      if (!item) {
+        if (indicator) indicator.innerText = "";
+        return;
+      }
+
+      const srcSlot = triggerSourceFor[slot];
+      const srcItem = G.equipped[srcSlot];
+
+      let isActivated = false;
+      if (srcItem && GENERATES[srcItem.element] === item.element) {
+        isActivated = true;
+        activeCount++;
+      }
+
+      item.isSecretActive = isActivated;
+      if (indicator) indicator.innerText = isActivated ? "✓ Ẩn" : "";
+    });
+
+    const hiddenCountLabel = document.getElementById('ui-active-hidden-count');
+    if (hiddenCountLabel) hiddenCountLabel.innerText = `Dòng Ẩn: ${activeCount} Kích Hoạt`;
+
+    if (activeCount >= 1) triggerQuestProgress("ACTIVATE_HIDDEN", activeCount);
+    return activeCount;
+  }
+
+  function renderInventoryUI() {
+    const grid = document.getElementById('ui-inventory-grid');
+    if (!grid) return;
+    grid.innerHTML = "";
+    document.getElementById('ui-inv-capacity').innerText = `${G.inventory.length}/18`;
+
+    for (let i = 0; i < 18; i++) {
+      const item = G.inventory[i];
+      const card = document.createElement('div');
+
+      if (item) {
+        card.className = "inv-card";
+        const qConf = RARITY_CONFIG[item.quality] || RARITY_CONFIG.HIEM;
+        const elemCol = ELEM_COLORS[item.element] || 0xffffff;
+        card.style.borderColor = `#${elemCol.toString(16)}`;
+
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <span style="font-size:9px; font-weight:bold; color:${qConf.color};">${qConf.name}</span>
+            <span style="font-size:9px; font-weight:bold; color:#${elemCol.toString(16)};">[${item.element}]</span>
+          </div>
+          <div style="font-size:10.5px; font-weight:bold; color:#fff; margin:2px 0; line-height:13px;">
+            ${item.name}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:9px; color:#888;">
+            <span>${item.slot.toUpperCase()}</span>
+            ${item.enhance > 0 ? `<b style="color:#ffd700;">+${item.enhance}</b>` : ""}
+          </div>
+        `;
+        card.onclick = () => openCompareModal(item, i);
+      } else {
+        card.className = "inv-card empty";
+        card.innerHTML = `<span>Trống</span>`;
+      }
+      grid.appendChild(card);
+    }
+
+    // Cập nhật 6 ô trên người
+    const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+    slots.forEach(slot => {
+      const item = G.equipped[slot];
+      const nameElem = document.getElementById(`slot-name-${slot}`);
+      if (item) {
+        const elemCol = ELEM_COLORS[item.element] || 0xffffff;
+        nameElem.innerText = `${item.name} +${item.enhance}`;
+        nameElem.style.color = `#${elemCol.toString(16)}`;
+      } else {
+        nameElem.innerText = "Trống";
+        nameElem.style.color = "#666";
+      }
+    });
+
+    resolveEquippedAttributes();
+    updateForgeSelector();
+  }
+
+  function openCompareModal(item, invIndex) {
+    compareState = { invIndex, item };
+    const modal = document.getElementById('compare-modal');
+    document.getElementById('cmp-slot-title').innerText = item.slot.toUpperCase();
+
+    const equippedItem = G.equipped[item.slot];
+    const eqContent = document.getElementById('cmp-eq-content');
+    const newContent = document.getElementById('cmp-new-content');
+
+    // Cột Đang Mặc
+    if (equippedItem) {
+      const q = RARITY_CONFIG[equippedItem.quality] || RARITY_CONFIG.HIEM;
+      const col = ELEM_COLORS[equippedItem.element] || 0xffffff;
+      eqContent.innerHTML = `
+        <div style="font-weight:bold; font-size:11px; color:${q.color};">${equippedItem.name} +${equippedItem.enhance}</div>
+        <div style="font-size:9.5px; color:#888; margin-bottom:4px;">[${equippedItem.element}] | ${q.name} | Cấp ${equippedItem.levelReq}</div>
+        <div style="border-top:1px solid #222; padding-top:3px;">
+          ${equippedItem.stats.atk ? `<div>• Công: +${equippedItem.stats.atk}</div>` : ""}
+          ${equippedItem.stats.def ? `<div>• Giáp: +${equippedItem.stats.def}</div>` : ""}
+          ${equippedItem.stats.hp ? `<div>• Máu: +${equippedItem.stats.hp}</div>` : ""}
+          <div style="color:${equippedItem.isSecretActive ? '#ffd700' : '#666'}; margin-top:2px;">• [Ẩn] ${equippedItem.hiddenStat} ${equippedItem.isSecretActive ? '✓' : '✗'}</div>
+        </div>
+      `;
+    } else {
+      eqContent.innerHTML = `<div style="color:#666; font-style:italic; padding:10px 0;">Chưa mặc trang bị ở vị trí này</div>`;
+    }
+
+    // Cột Trang Bị Mới kèm so sánh độ lệch (+ / -)
+    const nQ = RARITY_CONFIG[item.quality] || RARITY_CONFIG.HIEM;
+    const nCol = ELEM_COLORS[item.element] || 0xffffff;
+
+    let atkDiffHtml = "";
+    let defDiffHtml = "";
+    let hpDiffHtml = "";
+
+    const oldAtk = equippedItem?.stats?.atk || 0;
+    const newAtk = item.stats?.atk || 0;
+    const diffAtk = newAtk - oldAtk;
+    if (newAtk > 0 || oldAtk > 0) {
+      atkDiffHtml = `<div>• Công: +${newAtk} ${formatDiff(diffAtk)}</div>`;
+    }
+
+    const oldDef = equippedItem?.stats?.def || 0;
+    const newDef = item.stats?.def || 0;
+    const diffDef = newDef - oldDef;
+    if (newDef > 0 || oldDef > 0) {
+      defDiffHtml = `<div>• Giáp: +${newDef} ${formatDiff(diffDef)}</div>`;
+    }
+
+    const oldHp = equippedItem?.stats?.hp || 0;
+    const newHp = item.stats?.hp || 0;
+    const diffHp = newHp - oldHp;
+    if (newHp > 0 || oldHp > 0) {
+      hpDiffHtml = `<div>• Máu: +${newHp} ${formatDiff(diffHp)}</div>`;
+    }
+
+    newContent.innerHTML = `
+      <div style="font-weight:bold; font-size:11px; color:${nQ.color};">${item.name} +${item.enhance}</div>
+      <div style="font-size:9.5px; color:#888; margin-bottom:4px;">[${item.element}] | ${nQ.name} | Cấp ${item.levelReq}</div>
+      <div style="border-top:1px solid #222; padding-top:3px;">
+        ${atkDiffHtml}
+        ${defDiffHtml}
+        ${hpDiffHtml}
+        <div style="color:#888; margin-top:2px;">• [Ẩn] ${item.hiddenStat}</div>
+      </div>
+    `;
+
+    document.getElementById('btn-cmp-equip').innerText = equippedItem ? "MẶC THAY THẾ" : "MẶC VÀO";
+    modal.style.display = "flex";
+  }
+
+  function formatDiff(val) {
+    if (val > 0) return `<span class="diff-pos">(+${val})</span>`;
+    if (val < 0) return `<span class="diff-neg">(${val})</span>`;
+    return `<span class="diff-neutral">(0)</span>`;
+  }
+
+  function closeCompareModal() {
+    document.getElementById('compare-modal').style.display = "none";
+  }
+
+  function confirmEquipFromCompare() {
+    const { item, invIndex } = compareState;
+    if (!item) return;
+
+    const oldEquipped = G.equipped[item.slot];
+    G.equipped[item.slot] = item;
+    G.inventory.splice(invIndex, 1);
+
+    if (oldEquipped) {
+      G.inventory.push(oldEquipped);
+    }
+
+    addCombatLog(`<b style="color:#38bdf8;">Đã mặc [${item.name}] vào ô ${item.slot.toUpperCase()}!</b>`);
+    triggerQuestProgress("EQUIP_ITEM", 1);
+
+    closeCompareModal();
+    renderInventoryUI();
+    drawHeroModel();
+    saveGameState();
+  }
+
+  function confirmSellFromCompare() {
+    const { item, invIndex } = compareState;
+    if (!item) return;
+
+    const sellPrice = 120 + item.levelReq * 25 + item.enhance * 150;
+    G.silver += sellPrice;
+    G.inventory.splice(invIndex, 1);
+
+    addCombatLog(`Đã bán [${item.name}], thu về +${sellPrice} Bạc.`);
+    closeCompareModal();
+    updateTopBarUI();
+    renderInventoryUI();
+    saveGameState();
+  }
+
+  function inspectEquippedSlot(slot) {
+    const item = G.equipped[slot];
+    if (!item) return;
+
+    inspectEquippedSlotKey = slot;
+    const modal = document.getElementById('equipped-inspect-modal');
+    const q = RARITY_CONFIG[item.quality] || RARITY_CONFIG.HIEM;
+
+    document.getElementById('eq-ins-name').innerText = `${item.name}`;
+    document.getElementById('eq-ins-name').style.color = q.color;
+    document.getElementById('eq-ins-enhance').innerText = `+${item.enhance}`;
+
+    document.getElementById('eq-ins-body').innerHTML = `
+      <div style="color:#888; font-size:10px; margin-bottom:4px;">Vị trí: ${slot.toUpperCase()} | Hệ: [${item.element}] | Phẩm: ${q.name}</div>
+      ${item.stats.atk ? `<div>• Sát thương Ngoại/Nội công: +${item.stats.atk}</div>` : ""}
+      ${item.stats.def ? `<div>• Phòng ngự vật lý: +${item.stats.def}</div>` : ""}
+      ${item.stats.hp ? `<div>• Sinh lực tối đa: +${item.stats.hp}</div>` : ""}
+      <div style="color:${item.isSecretActive ? '#ffd700' : '#555'}; margin-top:4px;">
+        • [Dòng Ẩn]: ${item.hiddenStat} ${item.isSecretActive ? '✓ Đã kích hoạt' : '✗ Chưa kích hoạt'}
+      </div>
+    `;
+
+    modal.style.display = "flex";
+  }
+
+  function closeEquippedInspectModal() {
+    document.getElementById('equipped-inspect-modal').style.display = "none";
+  }
+
+  function unequipCurrentInspected() {
+    if (!inspectEquippedSlotKey) return;
+    if (G.inventory.length >= 18) {
+      showNoticeModal("Túi đồ đã đầy!", "Không còn chỗ trống trong hành trang để tháo đồ.");
+      return;
+    }
+
+    const item = G.equipped[inspectEquippedSlotKey];
+    G.inventory.push(item);
+    G.equipped[inspectEquippedSlotKey] = null;
+
+    addCombatLog(`Đã tháo trang bị [${item.name}].`);
+    closeEquippedInspectModal();
+    renderInventoryUI();
+    drawHeroModel();
+    saveGameState();
+  }
+
+  function goToForgeWithInspected() {
+    if (!inspectEquippedSlotKey) return;
+    currentForgeSlot = inspectEquippedSlotKey;
+    closeEquippedInspectModal();
+    navigateTab('tab-forge');
+    selectForgeTarget(currentForgeSlot);
+  }
+
+  function quickSellNormalGear() {
+    let soldCount = 0;
+    let earnedSilver = 0;
+
+    for (let i = G.inventory.length - 1; i >= 0; i--) {
+      const it = G.inventory[i];
+      if (it.quality === "THUONG" && it.enhance === 0) {
+        earnedSilver += 120 + it.levelReq * 15;
+        G.inventory.splice(i, 1);
+        soldCount++;
+      }
+    }
+
+    if (soldCount > 0) {
+      G.silver += earnedSilver;
+      addCombatLog(`<b style="color:#22c55e;">Đã thanh lý ${soldCount} món đồ Thường, thu về +${earnedSilver} Bạc!</b>`);
+      updateTopBarUI();
+      renderInventoryUI();
+      saveGameState();
+    } else {
+      showNoticeModal("Thông Báo", "Không có trang bị phẩm chất Thường (+0) nào trong túi.");
+    }
+  }
+
+  function sortInventory() {
+    const qRank = { BACH_KIM: 4, HOANG_KIM: 3, HIEM: 2, THUONG: 1 };
+    G.inventory.sort((a, b) => {
+      const rA = qRank[a.quality] || 0;
+      const rB = qRank[b.quality] || 0;
+      if (rB !== rA) return rB - rA;
+      if (b.enhance !== a.enhance) return b.enhance - a.enhance;
+      return a.levelReq - b.levelReq;
+    });
+
+    renderInventoryUI();
+    addCombatLog(`Đã sắp xếp lại túi hành trang gọn gàng.`);
+  }
+
+  function updateForgeSelector() {
+    const container = document.getElementById('ui-forge-selector-list');
+    if (!container) return;
+    container.innerHTML = "";
+
+    const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+    slots.forEach(slot => {
+      const item = G.equipped[slot];
+      const btn = document.createElement('button');
+      btn.className = "btn-action";
+      btn.style.textAlign = "left";
+      btn.style.fontSize = "10px";
+
+      if (item) {
+        const col = ELEM_COLORS[item.element] || 0xffffff;
+        btn.innerHTML = `<span style="color:#${col.toString(16)}; font-weight:bold;">${item.name}</span> (+${item.enhance})`;
+        btn.onclick = () => selectForgeTarget(slot);
+      } else {
+        btn.innerHTML = `<span style="color:#555;">[${slot.toUpperCase()}] Trống</span>`;
+        btn.disabled = true;
+      }
+      container.appendChild(btn);
+    });
+
+    selectForgeTarget(currentForgeSlot);
+  }
+
+  function selectForgeTarget(slot) {
+    currentForgeSlot = slot;
+    const item = G.equipped[slot];
+    const nameView = document.getElementById('ui-forge-target-name');
+    const costView = document.getElementById('ui-forge-cost-silver');
+
+    if (item) {
+      const col = ELEM_COLORS[item.element] || 0xffffff;
+      nameView.innerHTML = `<span style="color:#${col.toString(16)};">${item.name}</span> (+${item.enhance})`;
+      const cost = (item.enhance + 1) * 300;
+      costView.innerText = `${cost} Bạc`;
+    } else {
+      nameView.innerText = "Chưa có trang bị trên ô này";
+      costView.innerText = "0 Bạc";
+    }
+  }
+
+  function executeEnhance() {
+    const item = G.equipped[currentForgeSlot];
+    if (!item) {
+      showNoticeModal("Lò Rèn", "Vui lòng chọn 1 trang bị đang mặc trên người để cường hóa!");
+      return;
+    }
+    if (G.crystals < 1) {
+      showNoticeModal("Thiếu Huyền Tinh", "Cần có Huyền Tinh rơi từ quái để tiến hành rèn!");
+      return;
+    }
+    const cost = (item.enhance + 1) * 300;
+    if (G.silver < cost) {
+      showNoticeModal("Thiếu Bạc", "Không đủ ngân lượng để tiến hành cường hóa!");
+      return;
+    }
+
+    G.silver -= cost;
+    G.crystals -= 1;
+    item.enhance += 1;
+
+    addCombatLog(`<b style="color:#ffd700;">★ CƯỜNG HÓA THÀNH CÔNG! [${item.name}] đạt cấp độ +${item.enhance}!</b>`);
+    triggerQuestProgress("ENHANCE_ITEM", 1);
+
+    updateTopBarUI();
+    renderInventoryUI();
+    selectForgeTarget(currentForgeSlot);
+    drawHeroModel();
+    saveGameState();
+  }
+
+  function forgeCraftNewItem() {
+    if (G.silver < 500) {
+      showNoticeModal("Thiếu Bạc", "Cần 500 Bạc để đúc trang bị mới!");
+      return;
+    }
+    if (G.inventory.length >= 18) {
+      showNoticeModal("Túi Đồ Đầy", "Hãy dọn túi đồ trước khi đúc!");
+      return;
+    }
+
+    G.silver -= 500;
+    const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+    const rndSlot = slots[Math.floor(Math.random() * slots.length)];
+    const crafted = createRandomItem(rndSlot, Math.random() < 0.25 ? "HOANG_KIM" : "HIEM", G.level);
+    G.inventory.push(crafted);
+
+    addCombatLog(`<b style="color:#ffd700;">Đúc thành công: [${crafted.name}] [${crafted.element}] (${crafted.quality})!</b>`);
+    updateTopBarUI();
+    renderInventoryUI();
+    saveGameState();
+  }
+
+  function forgeRerollHidden() {
+    const item = G.equipped[currentForgeSlot];
+    if (!item) {
+      showNoticeModal("Lò Rèn", "Chọn trang bị đang mặc để tẩy dòng ẩn!");
+      return;
+    }
+    if (G.crystals < 1) {
+      showNoticeModal("Thiếu Huyền Tinh", "Cần 1 Huyền Tinh để tẩy dòng ẩn!");
+      return;
+    }
+
+    G.crystals -= 1;
+    const pool = ["Băng Sát Ngoại Công +60", "Hút Sinh Lực +10%", "Bạo Kích +12%", "Né Tránh +15%", "Kháng Tất Cả +18%"];
+    item.hiddenStat = pool[Math.floor(Math.random() * pool.length)];
+
+    addCombatLog(`<b style="color:#a855f7;">Đã tẩy luyện dòng ẩn của [${item.name}]: ${item.hiddenStat}!</b>`);
+    updateTopBarUI();
+    renderInventoryUI();
+    selectForgeTarget(currentForgeSlot);
+    saveGameState();
+  }
+
+  function forgeCycleElement() {
+    const item = G.equipped[currentForgeSlot];
+    if (!item) {
+      showNoticeModal("Lò Rèn", "Chọn trang bị đang mặc để chuyển hệ!");
+      return;
+    }
+    if (G.silver < 400) {
+      showNoticeModal("Thiếu Bạc", "Cần 400 Bạc để chuyển hệ ngũ hành!");
+      return;
+    }
+
+    G.silver -= 400;
+    const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
+    let nextIdx = (elems.indexOf(item.element) + 1) % elems.length;
+    item.element = elems[nextIdx];
+
+    addCombatLog(`<b style="color:#ffd700;">Chuyển hệ [${item.name}] sang hệ [${item.element}]!</b>`);
+    updateTopBarUI();
+    renderInventoryUI();
+    selectForgeTarget(currentForgeSlot);
+    saveGameState();
+  }
+
+  const canvasBox = document.getElementById('canvas-viewport');
+  const app = new PIXI.Application({
+    width: canvasBox.clientWidth || 480,
+    height: 200,
+    backgroundColor: 0x080b12,
+    antialias: true
+  });
+  canvasBox.appendChild(app.view);
+
+  const bgLayer = new PIXI.Container();
+  const weatherLayer = new PIXI.Container();
+  const worldLayer = new PIXI.Container();
+  const uiCombatLayer = new PIXI.Container();
+
+  app.stage.addChild(bgLayer);
+  app.stage.addChild(weatherLayer);
+  app.stage.addChild(worldLayer);
+  app.stage.addChild(uiCombatLayer);
+
+  function drawParallaxBackground() {
+    bgLayer.removeChildren();
+    const g = new PIXI.Graphics();
+    const w = app.screen.width;
+    const h = app.screen.height;
+
+    // Bầu trời đêm kiếm hiệp
+    g.beginFill(0x0e1726).drawRect(0, 0, w, h).endFill();
+
+    // Dãy núi xa sương mờ
+    g.beginFill(0x1e293b);
+    g.moveTo(0, 85).lineTo(50, 40).lineTo(120, 80).lineTo(200, 25).lineTo(280, 75).lineTo(360, 35).lineTo(440, 70).lineTo(w, 50).lineTo(w, 115).lineTo(0, 115).endFill();
+
+    // Dãy núi trung cảnh
+    g.beginFill(0x151e2e);
+    g.moveTo(0, 105).lineTo(80, 65).lineTo(160, 100).lineTo(260, 60).lineTo(380, 105).lineTo(w, 75).lineTo(w, 135).lineTo(0, 135).endFill();
+
+    // Đường dã ngoại Ba Lăng
+    g.beginFill(0x1c1712).drawRect(0, 120, w, h - 120).endFill();
+    g.beginFill(0x131d15).drawRect(0, 115, w, 15).endFill();
+
+    // Cọc rào gỗ
+    g.lineStyle(2, 0x3d2817);
+    g.moveTo(25, 120).lineTo(25, 100);
+    g.moveTo(15, 108).lineTo(35, 108);
+    g.moveTo(w - 30, 120).lineTo(w - 30, 100);
+
+    bgLayer.addChild(g);
+  }
+  drawParallaxBackground();
+
+  // Lá trúc lơ lửng
+  const leaves = [];
+  for (let i = 0; i < 15; i++) {
+    const leaf = new PIXI.Graphics();
+    leaf.beginFill(0x4ade80, 0.45).drawEllipse(0, 0, 4, 1.5).endFill();
+    leaf.x = Math.random() * app.screen.width;
+    leaf.y = Math.random() * app.screen.height;
+    leaf.rotation = Math.random() * Math.PI;
+    leaf.speedX = 0.5 + Math.random() * 0.8;
+    leaf.speedY = 0.4 + Math.random() * 0.6;
+    weatherLayer.addChild(leaf);
+    leaves.push(leaf);
+  }
+
+  // Model Containers
+  const playerContainer = new PIXI.Container();
+  playerContainer.x = 85;
+  playerContainer.y = 145;
+  worldLayer.addChild(playerContainer);
+
+  const enemyContainer = new PIXI.Container();
+  enemyContainer.x = app.screen.width - 85;
+  enemyContainer.y = 145;
+  worldLayer.addChild(enemyContainer);
+
+  const pShadow = new PIXI.Graphics();
+  const pAura = new PIXI.Graphics();
+  const pBody = new PIXI.Graphics();
+  const pWeapon = new PIXI.Graphics();
+  playerContainer.addChild(pShadow);
+  playerContainer.addChild(pAura);
+  playerContainer.addChild(pBody);
+  playerContainer.addChild(pWeapon);
+
+  const eShadow = new PIXI.Graphics();
+  const eBossAura = new PIXI.Graphics();
+  const eBody = new PIXI.Graphics();
+  const eWeapon = new PIXI.Graphics();
+  enemyContainer.addChild(eShadow);
+  enemyContainer.addChild(eBossAura);
+  enemyContainer.addChild(eBody);
+  enemyContainer.addChild(eWeapon);
+
+  function drawHeroModel() {
+    pShadow.clear().beginFill(0x000000, 0.45).drawEllipse(0, 5, 18, 5).endFill();
+    pAura.clear();
+    pBody.clear();
+    pWeapon.clear();
+
+    const equippedWp = G.equipped.weapon;
+    const hasEnhanceGlow = equippedWp && equippedWp.enhance >= 3;
+
+    if (hasEnhanceGlow) {
+      pAura.lineStyle(1.5, 0xffd700, 0.65).drawCircle(0, -20, 28);
+    }
+
+    const sectKey = G.activeSect;
+    if (sectKey === "thieu_lam" && G.hasJoinedSect) {
+      pBody.beginFill(0xfcd34d).drawCircle(0, -36, 8.5).endFill();
+      pBody.beginFill(0x78350f).drawPolygon([-9, -26, 9, -26, 11, 2, -11, 2]).endFill();
+      pBody.beginFill(0xd97706).drawPolygon([-9, -26, 2, -26, 11, 2, -5, 2]).endFill();
+      pWeapon.lineStyle(2.5, 0xffd700).moveTo(10, -45).lineTo(10, 4);
+      pWeapon.beginFill(0xb45309).drawCircle(10, -45, 5).endFill();
+    } else if (sectKey === "duong_mon" && G.hasJoinedSect) {
+      pBody.beginFill(0x14532d).drawCircle(0, -36, 8.5).endFill();
+      pBody.beginFill(0x166534).drawPolygon([-9, -26, 9, -26, 11, 2, -11, 2]).endFill();
+      pWeapon.beginFill(0x86efac).drawPolygon([8, -20, 16, -24, 13, -16]).endFill();
+    } else if (sectKey === "nga_mi" && G.hasJoinedSect) {
+      pBody.beginFill(0xfde68a).drawCircle(0, -36, 8).endFill();
+      pBody.beginFill(0x0284c7).drawPolygon([-9, -26, 9, -26, 12, 2, -12, 2]).endFill();
+      pWeapon.lineStyle(2, 0xe0f2fe).moveTo(8, -32).lineTo(14, 2);
+    } else if (sectKey === "cai_bang" && G.hasJoinedSect) {
+      pBody.beginFill(0xfde68a).drawCircle(0, -36, 8).endFill();
+      pBody.beginFill(0xb91c1c).drawPolygon([-10, -26, 10, -26, 12, 2, -12, 2]).endFill();
+      pWeapon.lineStyle(2.5, 0x22c55e).moveTo(-6, -36).lineTo(12, 4);
+    } else if (sectKey === "vo_dang" && G.hasJoinedSect) {
+      pBody.beginFill(0xfde68a).drawCircle(0, -36, 8).endFill();
+      pBody.beginFill(0x1d4ed8).drawPolygon([-10, -26, 10, -26, 12, 2, -12, 2]).endFill();
+      pWeapon.lineStyle(2, 0x93c5fd).moveTo(-8, 2).lineTo(10, -38);
+    } else {
+      // Sơ nhập Vô Môn Phái (Cấp 1 - 9)
+      pBody.beginFill(0x27272a).drawCircle(0, -36, 8).endFill();
+      pBody.beginFill(0x475569).drawPolygon([-8, -26, 8, -26, 10, 2, -10, 2]).endFill();
+      pWeapon.lineStyle(2, 0x713f12).moveTo(8, -24).lineTo(12, 2);
+    }
+  }
+
+  function drawEnemyModel() {
+    eShadow.clear().beginFill(0x000000, 0.45);
+    eBossAura.clear();
+    eBody.clear();
+    eWeapon.clear();
+
+    if (pvpMode) {
+      eShadow.drawEllipse(0, 5, 18, 5).endFill();
+      eBody.beginFill(0x450a0a).drawCircle(0, -36, 8).endFill();
+      eBody.beginFill(0x991b1b).drawPolygon([-9, -26, 9, -26, 11, 2, -11, 2]).endFill();
+      eWeapon.lineStyle(2, 0xfca5a5).moveTo(-9, -32).lineTo(-14, 2);
+    } else if (enemy.isBoss) {
+      eShadow.drawEllipse(0, 8, 28, 8).endFill();
+      eBossAura.lineStyle(2.5, 0xef4444, 0.8).drawCircle(0, -25, 34);
+      eBody.beginFill(0x1f2937).drawCircle(0, -46, 12).endFill();
+      eBody.beginFill(0x7f1d1d).drawPolygon([-16, -34, 16, -34, 18, 4, -18, 4]).endFill();
+      eWeapon.lineStyle(3.5, 0xe5e7eb).moveTo(-14, -55).lineTo(-18, 6);
+    } else {
+      eShadow.drawEllipse(0, 5, 14, 4).endFill();
+      if (G.level < 5) {
+        eBody.beginFill(0x78350f).drawEllipse(0, -14, 16, 10).endFill();
+        eBody.beginFill(0x451a03).drawCircle(10, -16, 5).endFill();
+      } else {
+        eBody.beginFill(0x78350f).drawRect(-7, -40, 14, 40).endFill();
+        eBody.beginFill(0xb45309).drawCircle(0, -42, 8).endFill();
+        eWeapon.lineStyle(3, 0x92400e).moveTo(-18, -25).lineTo(18, -25);
+      }
+    }
+  }
+
+  let animTick = 0;
+  app.ticker.add((delta) => {
+    animTick += 0.05 * delta;
+    const bob = Math.sin(animTick) * 2;
+    pBody.y = bob;
+    pWeapon.y = bob;
+    eBody.y = Math.cos(animTick) * 2;
+    eWeapon.y = Math.cos(animTick) * 2;
+
+    pShadow.scale.x = 1 + Math.sin(animTick) * 0.08;
+    eShadow.scale.x = 1 + Math.cos(animTick) * 0.08;
+
+    if (enemy.isBoss) eBossAura.scale.set(1 + Math.sin(animTick * 1.5) * 0.06);
+
+    leaves.forEach(leaf => {
+      leaf.x -= leaf.speedX * delta;
+      leaf.y += leaf.speedY * delta;
+      leaf.rotation += 0.02 * delta;
+      if (leaf.y > app.screen.height) { leaf.y = -10; leaf.x = Math.random() * (app.screen.width + 50); }
+      if (leaf.x < -20) { leaf.x = app.screen.width + 20; }
+    });
+  });
+
+  function playHeroLunge() {
+    const origX = 85;
+    playerContainer.x = origX + 35;
+    pWeapon.rotation = 0.5;
+
+    const slash = new PIXI.Graphics();
+    const slashCol = SECT_CONFIG[G.activeSect]?.color || 0xcccccc;
+    slash.lineStyle(2.5, slashCol, 0.9);
+    slash.arc(enemyContainer.x - 15, enemyContainer.y - 20, 28, -Math.PI / 4, Math.PI / 4);
+    worldLayer.addChild(slash);
+
+    setTimeout(() => {
+      worldLayer.removeChild(slash);
+      playerContainer.x = origX;
+      pWeapon.rotation = 0;
+    }, 120);
+  }
+
+  function showFloatDamageText(text, colorHex, isCrit) {
+    const txt = new PIXI.Text(text, {
+      fontFamily: "Tahoma",
+      fontSize: isCrit ? 15 : 11,
+      fontWeight: "bold",
+      fill: colorHex,
+      stroke: 0x000000,
+      strokeThickness: 2.5
+    });
+    txt.x = enemyContainer.x - 30 + (Math.random() * 20 - 10);
+    txt.y = enemyContainer.y - 35;
+    uiCombatLayer.addChild(txt);
+
+    let progress = 0;
+    const anim = () => {
+      progress++;
+      txt.y -= 1.1;
+      txt.alpha -= 0.025;
+      if (txt.alpha <= 0) {
+        uiCombatLayer.removeChild(txt);
+        app.ticker.remove(anim);
+        txt.destroy();
+      }
+    };
+    app.ticker.add(anim);
+  }
+
+  function combatTick() {
+    if (pvpMode || isDrafting) return;
+
+    playHeroLunge();
+
+    const curSect = SECT_CONFIG[G.activeSect] || SECT_CONFIG.thieu_lam;
+    const profile = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10, free: 0 };
+
+    let gearAtk = 0;
+    if (G.equipped) {
+      Object.values(G.equipped).forEach(it => {
+        if (it?.stats?.atk) {
+          const enhanceBonus = Math.floor(safeNum(it.stats.atk) * safeNum(it.enhance) * 0.1);
+          gearAtk += safeNum(it.stats.atk) + enhanceBonus;
+        }
+      });
+    }
+
+    let baseDmg = (safeNum(G.level, 1) * 8) + 40 + (safeNum(profile.str, 10) * 2.0) + gearAtk;
+
+    // Nộ khí & Tuyệt kỹ
+    let isUlt = false;
+    if (G.rage >= 100) {
+      isUlt = true;
+      baseDmg *= safeNum(curSect.ultMult, 1.5);
+      G.rage = 0;
+      addCombatLog(`<span style="color:#ffd700;">Tung tuyệt kỹ: [${curSect.ultName}]!</span>`);
+    } else {
+      G.rage = Math.min(100, G.rage + 20);
+    }
+    updateBarsUI();
+
+    // Ngũ hành tương khắc
+    let elemMult = 1.0;
+    if (COUNTERS[curSect.elem] === enemy.elem) elemMult = 1.35;
+    else if (COUNTERS[enemy.elem] === curSect.elem) elemMult = 0.8;
+
+    let finalDmg = Math.max(1, Math.floor(baseDmg * elemMult));
+
+    // Hiệu ứng tâm pháp mượn
+    if (G.borrowedPassiveId === "cb_td" && Math.random() < 0.25) {
+      finalDmg += 50;
+      addCombatLog(`[Túy Điệp] Nổ hỏa diễm bạo kích +50 ST!`);
+    } else if (G.borrowedPassiveId === "nm_bt") {
+      const heal = Math.floor(finalDmg * 0.1);
+      addCombatLog(`[Băng Tâm] Hút +${heal} HP.`);
+    }
+
+    enemy.hp = Math.max(0, enemy.hp - finalDmg);
+    updateBarsUI();
+
+    let tag = elemMult === 1.35 ? " (Khắc)" : (elemMult === 0.8 ? " (Bị khắc)" : "");
+    showFloatDamageText(`-${finalDmg}${tag}`, isUlt ? 0xffcc00 : 0xbab097, isUlt);
+
+    // Xử lý quái chết
+    if (enemy.hp <= 0) {
+      handleEnemyDeath();
+    }
+  }
+
+  function handleEnemyDeath() {
+    if (enemy.isBoss) {
+      G.stage++;
+      G.kills = 0;
+      enemy.isBoss = false;
+      G.silver += 450 + G.level * 25;
+      G.crystals += 2;
+      addHeroExp(160 + G.level * 20);
+      document.getElementById('boss-challenge-btn').style.display = "none";
+      addCombatLog(`<b style="color:#00ff00;">HẠ GỤC BOSS! Mở khóa Ải ${G.stage}. Nhận 450 Bạc và 2 Huyền Tinh!</b>`);
+
+      // Boss 100% rơi đồ phẩm chất cao
+      if (G.inventory.length < 18) {
+        const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+        const rndSlot = slots[Math.floor(Math.random() * slots.length)];
+        const droppedItem = createRandomItem(rndSlot, Math.random() < 0.3 ? "BACH_KIM" : "HOANG_KIM", G.level);
+        G.inventory.push(droppedItem);
+        addCombatLog(`<b style="color:#ffd700;">★ BOSS RƠI BÁU VẬT: [${droppedItem.name}] [${droppedItem.element}] (${droppedItem.quality})!</b>`);
+        renderInventoryUI();
+      }
+
+      triggerQuestProgress("KILL_BOSS", 1);
+      spawnFieldMob();
+    } else {
+      G.kills++;
+      G.silver += Math.floor(15 + G.level * 2.0);
+      addHeroExp(35 + G.level * 8);
+
+      // Tỷ lệ rơi Huyền Tinh ~25%
+      if (Math.random() < 0.25) {
+        G.crystals += 1;
+        addCombatLog(`<span style="color:#a855f7;">Nhặt được 1 Huyền Tinh từ quái dã ngoại!</span>`);
+      }
+
+      // Tỷ lệ rơi đồ quái thường cân bằng ~7%
+      if (Math.random() < 0.07 && G.inventory.length < 18) {
+        const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
+        const rndSlot = slots[Math.floor(Math.random() * slots.length)];
+        const dropped = createRandomItem(rndSlot, Math.random() < 0.3 ? "HIEM" : "THUONG", G.level);
+        G.inventory.push(dropped);
+        addCombatLog(`Quái rơi trang bị: [${dropped.name}] [${dropped.element}] (${dropped.quality}).`);
+        renderInventoryUI();
+      }
+
+      // Ngộ tính Roguelike
+      G.insight += 20;
+      if (G.insight >= G.insightMax) {
+        G.insight -= G.insightMax;
+        G.insightMax = Math.floor(G.insightMax * 1.25);
+        triggerRoguelikeDraft();
+      }
+
+      if (G.kills >= 5) {
+        document.getElementById('boss-challenge-btn').style.display = "block";
+      }
+
+      triggerQuestProgress("KILL_MOB", 1);
+      spawnFieldMob();
+    }
+
+    updateTopBarUI();
+    document.getElementById('ui-wave-counter').innerText = `Tiến Độ: ${Math.min(G.kills, 5)}/5 Quái`;
+  }
+
+  function spawnFieldMob() {
+    const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
+    const rndElem = elems[Math.floor(Math.random() * elems.length)];
+    let mobName = "Mộc Nhân Ma";
+    if (G.level < 5) mobName = "Heo Rừng Ba Lăng";
+    else if (G.level < 10) mobName = "Nhím Hoang Dã";
+
+    const hpCalc = Math.floor(120 + (G.level * 35) + (G.stage * 20));
+    enemy = {
+      name: `${mobName} #${G.kills + 1}`,
+      elem: rndElem,
+      maxHp: hpCalc,
+      hp: hpCalc,
+      isBoss: false
+    };
+
+    document.getElementById('ui-mob-name').innerText = enemy.name;
+    document.getElementById('ui-mob-elem').innerText = `[${enemy.elem}]`;
+    document.getElementById('ui-mob-elem').style.color = `#${ELEM_COLORS[enemy.elem].toString(16)}`;
+
+    drawEnemyModel();
+  }
+
+  function challengeBoss() {
+    const hpCalc = Math.floor(750 + (G.level * 90) + (G.stage * 130));
+    enemy = {
+      name: `Đầu Mục Hắc Phong (Ải ${G.stage})`,
+      elem: "MOC",
+      maxHp: hpCalc,
+      hp: hpCalc,
+      isBoss: true
+    };
+
+    document.getElementById('ui-mob-name').innerText = enemy.name;
+    document.getElementById('ui-mob-elem').innerText = `[${enemy.elem}]`;
+    document.getElementById('ui-mob-elem').style.color = `#${ELEM_COLORS[enemy.elem].toString(16)}`;
+
+    drawEnemyModel();
+    addCombatLog(`<b style="color:#ff4444;">BOSS XUẤT HIỆN! Mau đổi hệ để khắc chế.</b>`);
+  }
+
+  setInterval(combatTick, 950);
+
+  function getRequiredExp(lvl) {
+    return Math.floor(70 * Math.pow(1.22, Math.max(0, lvl - 1)));
+  }
+
+  function addHeroExp(amount) {
+    G.exp += safeNum(amount, 0);
+    let req = getRequiredExp(G.level);
+
+    while (G.exp >= req) {
+      G.exp -= req;
+      G.level++;
+
+      // ĐẢM BẢO CHẮC CHẮN NHẬN +5 ĐIỂM TIỀM NĂNG CHO MÔN PHÁI HIỆN TẠI
+      const prof = G.sectProfiles[G.activeSect];
+      if (prof) {
+        prof.free = safeNum(prof.free, 0) + 5;
+      }
+
+      showLevelUpEffect();
+      addCombatLog(`<b style="color:#ffd700;">★ THĂNG CẤP! Bạn đã đạt Cấp ${G.level} (+5 Điểm Tiềm Năng)!</b>`);
+
+      if (G.level >= 10 && !G.hasJoinedSect) {
+        openSectCeremony();
+      }
+
+      triggerQuestProgress("REACH_LEVEL", G.level);
+      req = getRequiredExp(G.level);
+    }
+
+    updateTopBarUI();
+    renderStatsUI();
+    updateQuestUI();
+  }
+
+  function showLevelUpEffect() {
+    const lvlText = new PIXI.Text("★ THĂNG CẤP! +5 TIỀM NĂNG ★", {
+      fontFamily: "Tahoma",
+      fontSize: 13,
+      fontWeight: "bold",
+      fill: 0xffd700,
+      stroke: 0x000000,
+      strokeThickness: 3
+    });
+    lvlText.x = playerContainer.x - 65;
+    lvlText.y = playerContainer.y - 70;
+    uiCombatLayer.addChild(lvlText);
+
+    let progress = 0;
+    const anim = () => {
+      progress++;
+      lvlText.y -= 1;
+      lvlText.alpha -= 0.02;
+      if (lvlText.alpha <= 0) {
+        uiCombatLayer.removeChild(lvlText);
+        app.ticker.remove(anim);
+        lvlText.destroy();
+      }
+    };
+    app.ticker.add(anim);
+  }
+
+  function addPoint(attr) {
+    const prof = G.sectProfiles[G.activeSect];
+    if (prof && prof.free > 0) {
+      prof[attr]++;
+      prof.free--;
+
+      renderStatsUI();
+      triggerQuestProgress("ALLOCATE_STAT", 1);
+      saveGameState();
+    } else {
+      showNoticeModal("Tiềm Năng", "Không còn điểm tiềm năng dư! Hãy thăng cấp để nhận thêm.");
+    }
+  }
+
+  function resetPotentialPoints() {
+    const prof = G.sectProfiles[G.activeSect];
+    if (!prof) return;
+
+    const baseVal = 10;
+    const spent = (prof.str - baseVal) + (prof.dex - baseVal) + (prof.vit - baseVal) + (prof.int - baseVal);
+
+    if (spent <= 0) {
+      showNoticeModal("Tẩy Điểm", "Bạn chưa cộng điểm nào để tẩy.");
+      return;
+    }
+
+    prof.free += spent;
+    prof.str = baseVal;
+    prof.dex = baseVal;
+    prof.vit = baseVal;
+    prof.int = baseVal;
+
+    renderStatsUI();
+    addCombatLog(`<b style="color:#22c55e;">Đã tẩy điểm tiềm năng thành công! Hoàn lại ${spent} điểm dư.</b>`);
+    saveGameState();
+  }
+
+  function renderStatsUI() {
+    const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10, free: 0 };
+    document.getElementById('ui-sect-title').innerText = SECT_CONFIG[G.activeSect]?.name || "Thiếu Lâm";
+    document.getElementById('ui-str').innerText = prof.str;
+    document.getElementById('ui-dex').innerText = prof.dex;
+    document.getElementById('ui-vit').innerText = prof.vit;
+    document.getElementById('ui-int').innerText = prof.int;
+    document.getElementById('ui-free-pts').innerText = prof.free;
+
+    const pSect = SECT_CONFIG[G.activeSect];
+    document.getElementById('ui-pvp-player-sect').innerText = `${pSect.name} [${pSect.elem}]`;
+  }
+
+  function getCurrentQuest() {
+    if (G.questIndex < NOVICE_QUESTS.length) {
+      return NOVICE_QUESTS[G.questIndex];
+    } else {
+      return {
+        id: 999,
+        title: `Dã Tẩu Chỉ Điểm #${G.daTauLoopCount + 1}`,
+        badge: "DÃ TẨU",
+        type: "KILL_MOB",
+        desc: "Tiêu diệt 10 quái dã ngoại Ba Lăng Huyện",
+        targetCount: 10,
+        rewardText: "+3,000 Bạc, +3 Huyền Tinh",
+        reward: { silver: 3000, crystals: 3 }
+      };
+    }
+  }
+
+  function updateQuestUI() {
+    const q = getCurrentQuest();
+    document.getElementById('ui-quest-badge').innerText = q.badge;
+    document.getElementById('ui-quest-badge').style.background = (q.badge === "DÃ TẨU") ? "#854d0e" : "#14532d";
+
+    let curProg = safeNum(G.questProgress, 0);
+    if (q.type === "REACH_LEVEL") curProg = G.level;
+
+    const isReady = (curProg >= q.targetCount);
+    const titleText = `${q.title} (${Math.min(curProg, q.targetCount)}/${q.targetCount})`;
+    document.getElementById('ui-quest-title').innerText = titleText;
+    document.getElementById('ui-quest-desc').innerText = `Mục tiêu: ${q.desc} | Thưởng: ${q.rewardText}`;
+
+    const btn = document.getElementById('ui-quest-btn');
+    if (isReady) {
+      btn.innerText = "Nhận Thưởng";
+      btn.className = "btn-quest-action claimable";
+    } else {
+      btn.className = "btn-quest-action";
+      if (q.type === "TALK") btn.innerText = "Diện Kiến";
+      else if (q.type === "EQUIP_ITEM") btn.innerText = "Trang Bị";
+      else if (q.type === "ALLOCATE_STAT") btn.innerText = "Tiềm Năng";
+      else if (q.type === "ENHANCE_ITEM") btn.innerText = "Lò Rèn";
+      else if (q.type === "REACH_LEVEL") btn.innerText = "Luyện Cấp";
+      else btn.innerText = "Đang Làm";
+    }
+  }
+
+  function handleQuestButtonAction() {
+    const q = getCurrentQuest();
+    let curProg = safeNum(G.questProgress, 0);
+    if (q.type === "REACH_LEVEL") curProg = G.level;
+
+    const isReady = (curProg >= q.targetCount);
+
+    if (isReady) {
+      if (q.reward.silver) G.silver += q.reward.silver;
+      if (q.reward.crystals) G.crystals += q.reward.crystals;
+      if (q.reward.grantLevel) {
+        G.level = Math.max(G.level, q.reward.grantLevel);
+        addCombatLog(`<b style="color:#ffd700;">Nhận chỉ điểm của Trưởng Thôn: Đạt Cấp ${G.level}!</b>`);
+      }
+      if (q.reward.starterGear) {
+        grantStarterEquipment();
+      }
+      if (q.reward.freePoints && G.sectProfiles[G.activeSect]) {
+        G.sectProfiles[G.activeSect].free += q.reward.freePoints;
+        renderStatsUI();
+      }
+
+      addCombatLog(`<b style="color:#00ff00;">[HOÀN THÀNH NHIỆM VỤ]: Nhận ${q.rewardText}!</b>`);
+
+      if (G.questIndex < NOVICE_QUESTS.length) {
+        G.questIndex++;
+      } else {
+        G.daTauLoopCount++;
+      }
+      G.questProgress = 0;
+
+      updateTopBarUI();
+      updateQuestUI();
+      renderInventoryUI();
+      saveGameState();
+      return;
+    }
+
+    // Tự động điều hướng đến đúng tab chức năng tương ứng
+    if (q.type === "TALK") {
+      openDialogueModal(q.npcName, q.speech);
+    } else if (q.type === "EQUIP_ITEM") {
+      navigateTab('tab-gear');
+    } else if (q.type === "ALLOCATE_STAT") {
+      navigateTab('tab-stats');
+    } else if (q.type === "ENHANCE_ITEM") {
+      navigateTab('tab-forge');
+    } else if (q.type === "REACH_LEVEL") {
+      navigateTab('tab-afk');
+      addCombatLog(`<span style="color:#ffd700;">Treo máy diệt quái tích lũy EXP để đạt Cấp 10!</span>`);
+    } else {
+      navigateTab('tab-afk');
+    }
+  }
+
+  function triggerQuestProgress(type, amount = 1) {
+    const q = getCurrentQuest();
+    if (q.type === type && G.questProgress < q.targetCount) {
+      G.questProgress += amount;
+      updateQuestUI();
+      if (G.questProgress >= q.targetCount) {
+        addCombatLog(`<b style="color:#ffd700;">Nhiệm vụ [${q.title}] đã sẵn sàng nhận thưởng!</b>`);
+      }
+    }
+  }
+
+  function openDialogueModal(title, speech) {
+    document.getElementById('npc-title').innerText = title;
+    document.getElementById('npc-speech').innerText = speech;
+    document.getElementById('dialogue-popup').style.display = "flex";
+  }
+
+  function confirmNpcDialogue() {
+    document.getElementById('dialogue-popup').style.display = "none";
+    triggerQuestProgress("TALK", 1);
+  }
+
+  function triggerRoguelikeDraft() {
+    isDrafting = true;
+    const box = document.getElementById('draft-cards-box');
+    box.innerHTML = "";
+
+    const candidatePool = [
+      { id: "c1", name: "Dịch Cân Kinh", elem: "KIM", tier: "R", desc: "Giảm 12% sát thương nhận vào." },
+      { id: "c2", name: "Bão Vũ Lê Hoa", elem: "MOC", tier: "SSR", desc: "Xả chùm phi tiêu kịch độc 220% ST." },
+      { id: "c3", name: "Băng Tâm", elem: "THUY", tier: "SR", desc: "Hồi 12% Máu và làm chậm quái." },
+      { id: "c4", name: "Hàng Long Chưởng", elem: "HOA", tier: "SSR", desc: "Rồng lửa bạo phát 260% ST Hỏa." },
+      { id: "c5", name: "Thái Cực Kiếm", elem: "THO", tier: "SR", desc: "Chặn 30% ST và phản hồi kiếm khí." }
+    ];
+
+    const offer = candidatePool.sort(() => 0.5 - Math.random()).slice(0, 3);
+    offer.forEach(c => {
+      const card = document.createElement('div');
+      card.className = "draft-card";
+      card.innerHTML = `
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="color:#${ELEM_COLORS[c.elem].toString(16)}; font-size:9.5px;">[${c.elem}]</b>
+            <span style="font-size:9px; background:#333; padding:1px 4px; border-radius:2px;">${c.tier}</span>
+          </div>
+          <div style="font-weight:bold; font-size:11px; color:#fff; margin-top:4px;">${c.name}</div>
+          <div style="font-size:9.5px; color:#aaa; margin-top:4px; line-height:14px;">${c.desc}</div>
+        </div>
+        <button class="btn-action btn-action-primary" style="margin-top:6px; width:100%;">LĨNH HỘI</button>
+      `;
+      card.onclick = () => {
+        addCombatLog(`<b style="color:#ffd700;">Lĩnh ngộ thành công bí kíp: 【${c.name}】!</b>`);
+        document.getElementById('draft-modal').style.display = "none";
+        isDrafting = false;
+      };
+      box.appendChild(card);
+    });
+
+    document.getElementById('draft-modal').style.display = "flex";
+  }
+
+  function openSectCeremony() {
+    document.getElementById('bai-su-popup').style.display = "flex";
+  }
+
+  function selectCeremonySect(sectKey) {
+    pendingCeremonySect = sectKey;
+    document.querySelectorAll('#bai-su-grid .sect-chip').forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+  }
+
+  function confirmSectCeremony() {
+    G.hasJoinedSect = true;
+    G.activeSect = pendingCeremonySect;
+    document.getElementById('bai-su-popup').style.display = "none";
+    document.getElementById('sect-locked-overlay').style.display = "none";
+
+    document.querySelectorAll('.sect-chip').forEach(c => c.classList.remove('active'));
+    const chip = document.getElementById(`chip-${pendingCeremonySect}`);
+    if (chip) chip.classList.add('active');
+
+    addCombatLog(`<b style="color:#ffd700;">★ ĐẠI LỄ HOÀN TẤT: Bái nhập môn phái [${SECT_CONFIG[pendingCeremonySect].name}]!</b>`);
+    renderStatsUI();
+    drawHeroModel();
+    saveGameState();
+  }
+
+  function switchSect(sectKey) {
+    if (!G.hasJoinedSect) {
+      showNoticeModal("Bái Sư", "Cần đạt Cấp 10 và hoàn thành nghi lễ Bái Sư mới được chuyển phái!");
+      return;
+    }
+    G.activeSect = sectKey;
+    document.querySelectorAll('.sect-chip').forEach(c => c.classList.remove('active'));
+    const chip = document.getElementById(`chip-${sectKey}`);
+    if (chip) chip.classList.add('active');
+
+    renderStatsUI();
+    drawHeroModel();
+    addCombatLog(`Đã chuyển đổi sang môn phái: [${SECT_CONFIG[sectKey].name}].`);
+  }
+
+  function startPvpDuel() {
+    if (!G.hasJoinedSect) {
+      showNoticeModal("Tống Kim", "Cần đạt Cấp 10 và Bái Sư Môn Phái mới được tham gia Tống Kim!");
+      return;
+    }
+    pvpMode = true;
+    document.getElementById('btn-pvp-start').disabled = true;
+    pvpEnemy.hp = pvpEnemy.maxHp;
+    drawEnemyModel();
+    addCombatLog(`<b style="color:#38bdf8;">=== CHIẾN TRƯỜNG TỐNG KIM KHAI CHIẾN ===</b>`);
+
+    const pvpTimer = setInterval(() => {
+      const pSect = SECT_CONFIG[G.activeSect];
+      const eSect = SECT_CONFIG[pvpEnemy.sect];
+
+      let pMult = (COUNTERS[pSect.elem] === eSect.elem) ? 1.35 : 1.0;
+      let pDmg = Math.floor(180 * pMult);
+      pvpEnemy.hp = Math.max(0, pvpEnemy.hp - pDmg);
+      showFloatDamageText(`-${pDmg}`, 0x38bdf8, false);
+
+      if (pvpEnemy.hp === 0) {
+        clearInterval(pvpTimer);
+        pvpMode = false;
+        G.merit += 70;
+        G.silver += 300;
+        updateTopBarUI();
+        document.getElementById('btn-pvp-start').disabled = false;
+        addCombatLog(`<b style="color:#22c55e;">[TỐNG KIM THẮNG TRẬN]: Nhận +70 Chiến Công, +300 Bạc!</b>`);
+        spawnFieldMob();
+      }
+    }, 1000);
+  }
+
+  function showNoticeModal(title, msg) {
+    document.getElementById('confirm-title').innerText = title;
+    document.getElementById('confirm-title').style.color = "#ffd700";
+    document.getElementById('confirm-msg').innerText = msg;
+    document.getElementById('btn-confirm-ok').innerText = "Đóng";
+    document.getElementById('btn-confirm-ok').onclick = closeConfirmModal;
+    document.getElementById('custom-confirm-modal').style.display = "flex";
+  }
+
+  function openResetConfirmModal() {
+    document.getElementById('confirm-title').innerText = "TẨY TỦY / TẠO LẠI NHÂN VẬT";
+    document.getElementById('confirm-title').style.color = "#ef4444";
+    document.getElementById('confirm-msg').innerText = "Toàn bộ dữ liệu cấp độ, trang bị và bạc sẽ bị xóa để bắt đầu lại từ Cấp 1. Bạn có chắc chắn?";
+    document.getElementById('btn-confirm-ok').innerText = "Xóa & Chơi Lại";
+    document.getElementById('btn-confirm-ok').onclick = executeResetAll;
+    document.getElementById('custom-confirm-modal').style.display = "flex";
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('custom-confirm-modal').style.display = "none";
+  }
+
+  function executeResetAll() {
+    clearInterval(autoSaveInterval);
+    localStorage.removeItem("VLTK_AFK_STATE");
+    G = getDefaultState();
+    closeConfirmModal();
+    location.reload();
+  }
+
+  function saveGameState() {
+    G.lastSaved = Date.now();
+    localStorage.setItem("VLTK_AFK_STATE", JSON.stringify(G));
+  }
+  const autoSaveInterval = setInterval(saveGameState, 4000);
+
+  function checkOfflineProgress() {
+    const raw = localStorage.getItem("VLTK_AFK_STATE");
+    if (raw) {
+      try {
+        const saved = JSON.parse(raw);
+        G = sanitizeState(saved);
+        const elapsedSec = Math.floor((Date.now() - G.lastSaved) / 1000);
+
+        if (elapsedSec >= 60) {
+          const mins = Math.min(720, Math.floor(elapsedSec / 60));
+          const expGot = mins * 65;
+          const silverGot = mins * 35;
+          G.silver += silverGot;
+          addHeroExp(expGot);
+
+          document.getElementById('offline-desc').innerHTML = `
+            Rời mạng: <b>${mins} phút</b>.<br>
+            Tích lũy bế quan: <b style="color:#38bdf8;">+${expGot} EXP</b>, <b style="color:#ffd700;">+${silverGot} Bạc</b>.
+          `;
+          document.getElementById('offline-popup').style.display = "flex";
+        }
+      } catch (e) {
+        G = getDefaultState();
+      }
+    }
+  }
+
+  function closeOfflinePopup() {
+    document.getElementById('offline-popup').style.display = "none";
+    updateTopBarUI();
+  }
+
+  function updateTopBarUI() {
+    document.getElementById('ui-hero-name').innerText = G.charName;
+    document.getElementById('ui-lvl').innerText = `Lv.${G.level}`;
+    document.getElementById('ui-silver').innerText = G.silver.toLocaleString();
+    document.getElementById('ui-crystals').innerText = G.crystals.toLocaleString();
+
+    const forgeCry = document.getElementById('ui-forge-crystals');
+    if (forgeCry) forgeCry.innerText = G.crystals.toLocaleString();
+
+    const reqExp = getRequiredExp(G.level);
+    const pct = Math.min(100, Math.floor((G.exp / reqExp) * 100));
+    document.getElementById('ui-exp-bar').style.width = `${pct}%`;
+
+    const lockOverlay = document.getElementById('sect-locked-overlay');
+    if (lockOverlay) lockOverlay.style.display = G.hasJoinedSect ? "none" : "flex";
+  }
+
+  function updateBarsUI() {
+    const hpPct = Math.max(0, Math.min(100, (enemy.hp / enemy.maxHp) * 100));
+    document.getElementById('ui-hp-fill').style.width = `${hpPct}%`;
+    document.getElementById('ui-hp-text').innerText = `${enemy.hp}/${enemy.maxHp}`;
+
+    document.getElementById('ui-rage-fill').style.width = `${G.rage}%`;
+    document.getElementById('ui-rage-text').innerText = `${G.rage}%`;
+
+    const insPct = Math.max(0, Math.min(100, (G.insight / G.insightMax) * 100));
+    document.getElementById('ui-insight-fill').style.width = `${insPct}%`;
+    document.getElementById('ui-insight-text').innerText = `${G.insight}/${G.insightMax}`;
+  }
+
+  function addCombatLog(msg) {
+    const stream = document.getElementById('combat-log-stream');
+    const line = document.createElement('div');
+    line.innerHTML = `> ` + msg;
+    stream.prepend(line);
+  }
+
+  function navigateTab(tabId) {
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.dash-btn').forEach(b => b.classList.remove('active'));
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+
+    // Highlight button tương ứng
+    const tabBtns = document.querySelectorAll('.dash-btn');
+    const map = { "tab-afk": 0, "tab-stats": 1, "tab-gear": 2, "tab-forge": 3, "tab-pvp": 4 };
+    const idx = map[tabId];
+    if (idx !== undefined && tabBtns[idx]) tabBtns[idx].classList.add('active');
+  }
+
+  checkOfflineProgress();
+  drawHeroModel();
+  drawEnemyModel();
+  renderStatsUI();
+  renderInventoryUI();
+  spawnFieldMob();
+  updateTopBarUI();
+  updateBarsUI();
+  updateQuestUI();
+</script>
+</body>
+</html>
