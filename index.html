@@ -1,10 +1,9 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Võ Lâm AFK H5 - Thuộc Tính Trang Bị Chuẩn Võ Lâm</title>
+  <title>Võ Lâm AFK H5 - Lò Rèn Tiến Phẩm Bạch Kim</title>
   <!-- Pixi.js Canvas Engine v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
   <style>
@@ -334,7 +333,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 54px;
+      min-height: 56px;
       cursor: pointer;
       position: relative;
     }
@@ -346,6 +345,29 @@
       justify-content: center;
       color: #333;
       cursor: default;
+    }
+
+    /* LÒ RÈN TÍNH NĂNG CON (SUB-TABS) */
+    .forge-subtabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .forge-subtab-btn {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: var(--color-text-primary);
+      padding: 5px 2px;
+      font-size: 10px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+    }
+    .forge-subtab-btn.active {
+      background: #b45309;
+      border-color: #f59e0b;
+      color: #fff;
     }
 
     /* BẢN ĐỒ & DÃ TẨU */
@@ -632,18 +654,39 @@
     <div class="map-card-list" id="map-list-container"></div>
   </div>
 
-  <!-- TAB 6: LÒ RÈN -->
+  <!-- TAB 6: LÒ RÈN TOÀN NĂNG -->
   <div class="tab-view" id="tab-forge">
     <div class="panel-header">
       <span>LÒ RÈN HUYỀN TINH</span>
       <span>Huyền Tinh: <b id="ui-forge-crystals" style="color:#a855f7;">5</b></span>
     </div>
+
+    <!-- 3 CHẾ ĐỘ LÒ RÈN -->
+    <div class="forge-subtabs">
+      <button class="forge-subtab-btn active" id="f-tab-enhance" onclick="switchForgeTab('enhance')">CƯỜNG HÓA</button>
+      <button class="forge-subtab-btn" id="f-tab-quality" onclick="switchForgeTab('quality')">TIẾN PHẨM</button>
+      <button class="forge-subtab-btn" id="f-tab-element" onclick="switchForgeTab('element')">CHUYỂN HỆ</button>
+    </div>
+
     <div style="background:#111; border:1px solid #333; padding:8px; text-align:center; margin-bottom:8px;">
       <div style="font-size:10px; color:#888;">TRANG BỊ ĐANG CHỌN:</div>
       <div style="font-size:12px; font-weight:bold; color:#ffd700; margin:4px 0;" id="ui-forge-target-name">Chưa chọn</div>
-      <div style="font-size:10px; margin-bottom:8px;" id="ui-forge-cost-line">Chi phí: 0 Bạc + 1 Huyền Tinh</div>
-      <button class="btn-action" style="width:100%; background:#b45309; color:#fff; font-weight:bold; padding:6px;" onclick="executeEnhance()">CƯỜNG HÓA (+1 ĐẾN +16)</button>
+      <div style="font-size:10px; color:#aaa; margin-bottom:4px;" id="ui-forge-desc-line">...</div>
+      <div style="font-size:10.5px; font-weight:bold; color:#f59e0b; margin-bottom:8px;" id="ui-forge-cost-line">Chi phí: 0 Bạc + 0 Huyền Tinh</div>
+
+      <!-- Nút hành động tương ứng theo subtab -->
+      <button class="btn-action" id="ui-forge-action-btn" style="width:100%; background:#b45309; color:#fff; font-weight:bold; padding:7px;" onclick="executeForgeAction()">THỰC HIỆN</button>
+
+      <!-- Khung chọn hệ nếu ở subtab Chuyển Hệ -->
+      <div id="forge-element-picker" style="display:none; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:8px;">
+        <button class="btn-action" style="color:#ffd700;" onclick="executeChangeElement('KIM')">KIM</button>
+        <button class="btn-action" style="color:#22c55e;" onclick="executeChangeElement('MOC')">MỘC</button>
+        <button class="btn-action" style="color:#38bdf8;" onclick="executeChangeElement('THUY')">THỦY</button>
+        <button class="btn-action" style="color:#ef4444;" onclick="executeChangeElement('HOA')">HỎA</button>
+        <button class="btn-action" style="color:#b45309;" onclick="executeChangeElement('THO')">THỔ</button>
+      </div>
     </div>
+
     <div class="panel-header"><span>CHỌN TRANG BỊ TRÊN NGƯỜI ĐỂ RÈN:</span></div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="ui-forge-selector-list"></div>
   </div>
@@ -730,6 +773,40 @@ const ELEM_COLORS = {
   THO: 0xb45309
 };
 
+const QUALITY_INFO = {
+  THUONG:    { name: "Thường",    color: "#aaaaaa" },
+  HIEM:      { name: "Hiếm",      color: "#38bdf8" },
+  HOANG_KIM: { name: "Hoàng Kim", color: "#ffd700" },
+  BACH_KIM:  { name: "Bạch Kim",  color: "#ec4899" }
+};
+
+const QUALITY_UPGRADE_CONFIG = {
+  THUONG: {
+    next: "HIEM",
+    nextName: "Hiếm",
+    silverCost: 1500,
+    crystalCost: 3,
+    statMult: 1.25,
+    desc: "Tăng +25% chỉ số cơ bản, mở khóa Dòng Ẩn Ngũ Hành!"
+  },
+  HIEM: {
+    next: "HOANG_KIM",
+    nextName: "Hoàng Kim",
+    silverCost: 6000,
+    crystalCost: 8,
+    statMult: 1.6,
+    desc: "Tăng +60% chỉ số cơ bản, chỉ số Dòng Ẩn tăng +50%!"
+  },
+  HOANG_KIM: {
+    next: "BACH_KIM",
+    nextName: "Bạch Kim",
+    silverCost: 25000,
+    crystalCost: 20,
+    statMult: 1.5,
+    desc: "Tăng +50% chỉ số, ban tặng Dòng Thuộc Tính Thần Thoại Bạch Kim!"
+  }
+};
+
 const COUNTERS = { KIM: "MOC", MOC: "THO", THO: "THUY", THUY: "HOA", HOA: "KIM" };
 const GENERATES = { KIM: "THUY", THUY: "MOC", MOC: "HOA", HOA: "THO", THO: "KIM" };
 
@@ -800,7 +877,7 @@ function getDefaultState() {
     level: 1,
     exp: 0,
     silver: 800,
-    crystals: 5,
+    crystals: 8,
     activeSect: "vo_mon_phai",
     hasJoinedSect: false,
     currentMapId: "map_balang",
@@ -830,6 +907,7 @@ function getDefaultState() {
 let G = getDefaultState();
 let enemy = { name: "Heo Rừng Nhỏ", elem: "MOC", maxHp: 120, hp: 120, isBoss: false };
 let currentForgeSlot = "weapon";
+let currentForgeMode = "enhance"; // 'enhance' | 'quality' | 'element'
 let inspectingInvIndex = null;
 let pendingCeremonySect = "thieu_lam";
 
@@ -849,7 +927,7 @@ function sanitizeState(loaded) {
   res.level = Math.max(1, safeNum(res.level, 1));
   res.exp = safeNum(res.exp, 0);
   res.silver = safeNum(res.silver, 800);
-  res.crystals = safeNum(res.crystals, 5);
+  res.crystals = safeNum(res.crystals, 8);
   res.rage = safeNum(res.rage, 0);
   res.datauStreak = safeNum(res.datauStreak, 0);
   res.skillPoints = safeNum(res.skillPoints, 1);
@@ -911,96 +989,72 @@ const ITEM_NAMES_POOL = {
   amulet: ["Băng Tinh Liên", "Bạch Hổ Bội", "Hoàng Ngọc Bội"]
 };
 
-/**
- * Sinh trang bị chuẩn với các dòng thuộc tính sáng & ẩn chuyên biệt cho từng vị trí
- */
 function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
   const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
   const elem = elems[Math.floor(Math.random() * elems.length)];
   const pool = ITEM_NAMES_POOL[slot] || ["Bảo Vật"];
   const name = pool[Math.floor(Math.random() * pool.length)];
 
-  // Multiplier phẩm chất
   let mult = 1.0;
   if (quality === "THUONG") mult = 0.8;
   else if (quality === "HOANG_KIM") mult = 1.6;
   else if (quality === "BACH_KIM") mult = 2.4;
 
   const stats = {
-    atk: 0,
-    def: 0,
-    hp: 0,
-    mp: 0,
-    critRate: 0,
-    critDmg: 0,
-    eva: 0,
-    allResist: 0,
-    lifeSteal: 0,
-    recovery: 0,
-    pierce: 0,
-    hpRegen: 0
+    atk: 0, def: 0, hp: 0, mp: 0, critRate: 0, critDmg: 0,
+    eva: 0, allResist: 0, lifeSteal: 0, recovery: 0, pierce: 0, hpRegen: 0
   };
 
-  const hiddenStats = {
-    statKey: "",
-    val: 0,
-    desc: ""
-  };
+  const hiddenStats = { statKey: "", val: 0, desc: "" };
 
-  // Thiết kế thuộc tính dòng sáng & dòng ẩn theo từng vị trí (Slot-specific)
   if (slot === "weapon") {
     stats.atk = Math.floor((35 + minLvl * 8) * mult);
-    stats.critRate = Math.floor((4 + Math.random() * 6) * (mult > 1 ? 1.3 : 1));
+    stats.critRate = Math.floor((4 + Math.random() * 5) * (mult > 1 ? 1.3 : 1));
     stats.pierce = Math.floor(5 * mult);
-
     hiddenStats.statKey = "elementalAtk";
     hiddenStats.val = Math.floor(40 + minLvl * 10);
     hiddenStats.desc = `Băng Sát Ngoại Công +${hiddenStats.val}`;
-  } 
-  else if (slot === "helm") {
+  } else if (slot === "helm") {
     stats.def = Math.floor((15 + minLvl * 3.5) * mult);
     stats.hp = Math.floor((60 + minLvl * 20) * mult);
     stats.hpRegen = Math.floor(4 * mult);
-
     hiddenStats.statKey = "recovery";
     hiddenStats.val = Math.floor(15 * mult);
     hiddenStats.desc = `Thời Gian Phục Hồi -${hiddenStats.val}%`;
-  }
-  else if (slot === "armor") {
+  } else if (slot === "armor") {
     stats.def = Math.floor((30 + minLvl * 6) * mult);
     stats.hp = Math.floor((120 + minLvl * 30) * mult);
     stats.allResist = Math.floor(6 * mult);
-
     hiddenStats.statKey = "allResist";
     hiddenStats.val = Math.floor(12 * mult);
     hiddenStats.desc = `Kháng Tất Cả +${hiddenStats.val}%`;
-  }
-  else if (slot === "ring") {
+  } else if (slot === "ring") {
     stats.atk = Math.floor((15 + minLvl * 4) * mult);
     stats.mp = Math.floor((80 + minLvl * 20) * mult);
     stats.critRate = Math.floor(6 * mult);
-
     hiddenStats.statKey = "critDmg";
     hiddenStats.val = Math.floor(25 * mult);
-    hiddenStats.desc = `Sát Thương Chí Mạng +${hiddenStats.val}%`;
-  }
-  else if (slot === "boots") {
+    hiddenStats.desc = `Sát Thương Bạo Kích +${hiddenStats.val}%`;
+  } else if (slot === "boots") {
     stats.def = Math.floor((12 + minLvl * 3) * mult);
     stats.eva = Math.floor(6 * mult);
     stats.hp = Math.floor((50 + minLvl * 15) * mult);
-
     hiddenStats.statKey = "eva";
     hiddenStats.val = Math.floor(10 * mult);
     hiddenStats.desc = `Thân Pháp Né Tránh +${hiddenStats.val}%`;
-  }
-  else if (slot === "amulet") {
+  } else if (slot === "amulet") {
     stats.hp = Math.floor((80 + minLvl * 25) * mult);
     stats.mp = Math.floor((60 + minLvl * 15) * mult);
     stats.allResist = Math.floor(8 * mult);
-
     hiddenStats.statKey = "lifeSteal";
     hiddenStats.val = Math.floor(6 * mult);
     hiddenStats.desc = `Hút Sinh Lực +${hiddenStats.val}%`;
+  }
+
+  // Thuộc tính thần thoại Bạch Kim nếu tạo ra là Bạch Kim
+  let bachKimStat = null;
+  if (quality === "BACH_KIM") {
+    bachKimStat = getMythicStatBySlot(slot);
   }
 
   return {
@@ -1013,25 +1067,35 @@ function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
     enhance: 0,
     stats: stats,
     hiddenStats: hiddenStats,
+    bachKimStat: bachKimStat,
     isSecretActive: false
   };
 }
 
+function getMythicStatBySlot(slot) {
+  if (slot === "weapon") return { key: "pierce", val: 15, desc: "Bạch Kim: Xuyên Giáp +15%" };
+  if (slot === "helm")   return { key: "recovery", val: 25, desc: "Bạch Kim: Thời Gian Phục Hồi -25%" };
+  if (slot === "armor")  return { key: "allResist", val: 18, desc: "Bạch Kim: Kháng Tất Cả +18%" };
+  if (slot === "ring")   return { key: "critRate", val: 10, desc: "Bạch Kim: Tỷ Lệ Chí Mạng +10%" };
+  if (slot === "boots")  return { key: "eva", val: 15, desc: "Bạch Kim: Thân Pháp Né Tránh +15%" };
+  if (slot === "amulet") return { key: "lifeSteal", val: 8, desc: "Bạch Kim: Hút Sinh Lực +8%" };
+  return null;
+}
+
 /* ==========================================================================
-   4. TÍNH TOÁN BẢNG F3 TOÀN DIỆN TỪ TIỀM NĂNG & TRANG BỊ
+   4. BẢNG F3 TOÀN DIỆN & TÍNH TOÁN LỰC CHIẾN
    ========================================================================== */
 function calculateHeroStats() {
   const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10 };
   const lvl = G.level;
 
-  // 1. Chỉ số cơ bản từ Level và Tiềm Năng
   let baseAtkMin = 25 + lvl * 5 + prof.str * 1.8;
   let baseAtkMax = 40 + lvl * 7 + prof.str * 2.6;
   let baseDef = 12 + lvl * 2.8 + prof.str * 1.2;
   let maxHp = 450 + lvl * 55 + prof.vit * 18;
   let maxMp = 180 + lvl * 20 + prof.int * 10;
   let critRate = 0.06 + prof.dex * 0.0012;
-  let critDmg = 1.5; // 150%
+  let critDmg = 1.5;
   let evasion = 0.05 + prof.dex * 0.001;
   let allResist = 0;
   let lifeSteal = 0;
@@ -1039,11 +1103,8 @@ function calculateHeroStats() {
   let pierce = 0;
   let hpRegen = 4 + prof.vit * 0.3;
 
-  // 2. Cộng dồn từ 6 Trang Bị Đang Mặc (Đã tính Cường Hóa và Dòng Ẩn)
   Object.values(G.equipped).forEach(item => {
     if (!item) return;
-
-    // Hệ số cường hóa (+10% mỗi cấp)
     const enhanceMult = 1 + (item.enhance * 0.1);
 
     if (item.stats) {
@@ -1064,7 +1125,6 @@ function calculateHeroStats() {
       if (item.stats.hpRegen) hpRegen += item.stats.hpRegen * enhanceMult;
     }
 
-    // Nếu dòng ẩn tương sinh được kích hoạt
     if (item.isSecretActive && item.hiddenStats) {
       const h = item.hiddenStats;
       if (h.statKey === "allResist") allResist += h.val;
@@ -1077,15 +1137,23 @@ function calculateHeroStats() {
         baseAtkMax += h.val;
       }
     }
+
+    if (item.quality === "BACH_KIM" && item.bachKimStat) {
+      const b = item.bachKimStat;
+      if (b.key === "pierce") pierce += (b.val / 100);
+      else if (b.key === "allResist") allResist += b.val;
+      else if (b.key === "critRate") critRate += (b.val / 100);
+      else if (b.key === "eva") evasion += (b.val / 100);
+      else if (b.key === "lifeSteal") lifeSteal += (b.val / 100);
+      else if (b.key === "recovery") recovery += b.val;
+    }
   });
 
-  // Tỷ lệ giảm sát thương qua giáp (Damage Reduction)
   const drRate = baseDef / (baseDef + 120 + lvl * 10);
-
-  // Lực chiến tổng hợp (Battle Power)
   const bp = Math.floor(
     (baseAtkMax * 3.5) + (baseDef * 4.2) + (maxHp * 0.4) + (maxMp * 0.25) +
-    (critRate * 1200) + (evasion * 1000) + (allResist * 25) + (lifeSteal * 1500)
+    (critRate * 1200) + (evasion * 1000) + (allResist * 25) + (lifeSteal * 1500) +
+    (recovery * 20) + (pierce * 1000)
   );
 
   return {
@@ -1188,8 +1256,8 @@ function renderInventoryUI() {
     const cell = document.createElement('div');
     if (item) {
       cell.className = "inv-item-card";
-      const col = ELEM_COLORS[item.element] || 0xffffff;
-      cell.style.borderColor = `#${col.toString(16)}`;
+      const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
+      cell.style.borderColor = qInfo.color;
 
       let mainStatText = "";
       if (item.stats.atk) mainStatText = `Công +${item.stats.atk}`;
@@ -1197,10 +1265,11 @@ function renderInventoryUI() {
       else if (item.stats.hp) mainStatText = `HP +${item.stats.hp}`;
 
       cell.innerHTML = `
-        <div style="font-weight:bold; color:#${col.toString(16)}; font-size:10px;">${item.name}</div>
+        <div style="font-weight:bold; color:${qInfo.color}; font-size:10px;">${item.name}</div>
         <div style="font-size:8.5px; color:#888;">[${item.element}] • ${item.slot.toUpperCase()}</div>
+        <div style="font-size:8.5px; color:${qInfo.color}; font-weight:bold;">[${qInfo.name}]</div>
         <div style="font-size:9px; color:#ffd700;">${mainStatText}</div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1px;">
           <span style="font-size:8.5px; color:#22c55e;">+${item.enhance}</span>
           <span style="font-size:8px; color:#aaa;">Cấp ${item.levelReq}</span>
         </div>
@@ -1213,15 +1282,14 @@ function renderInventoryUI() {
     grid.appendChild(cell);
   }
 
-  // Cập nhật 6 ô trên người
   const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
   slots.forEach(slot => {
     const it = G.equipped[slot];
     const nameEl = document.getElementById(`slot-name-${slot}`);
     if (it) {
-      const col = ELEM_COLORS[it.element] || 0xffffff;
+      const qInfo = QUALITY_INFO[it.quality] || QUALITY_INFO.HIEM;
       nameEl.innerText = `${it.name} +${it.enhance}`;
-      nameEl.style.color = `#${col.toString(16)}`;
+      nameEl.style.color = qInfo.color;
     } else {
       nameEl.innerText = "Trống";
       nameEl.style.color = "#666";
@@ -1229,14 +1297,16 @@ function renderInventoryUI() {
   });
 
   resolveEquippedHiddenAttrs();
-  updateForgeSelector();
+  updateForgeView();
   updateF3UI();
 }
 
 function getItemFullStatsHtml(item) {
   if (!item || !item.stats) return "Không có dữ liệu";
   const enhanceMult = 1 + (item.enhance * 0.1);
-  let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Hệ: <b style="color:#ffd700;">${item.element}</b></div>`;
+  const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
+
+  let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Hệ: <b style="color:#ffd700;">${item.element}</b> | Phẩm: <b style="color:${qInfo.color};">${qInfo.name}</b></div>`;
 
   html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
   if (item.stats.atk) html += `• Lực Công Kích: +${Math.floor(item.stats.atk * enhanceMult)}<br>`;
@@ -1261,6 +1331,15 @@ function getItemFullStatsHtml(item) {
       </span>
     </div>`;
   }
+
+  if (item.quality === "BACH_KIM" && item.bachKimStat) {
+    html += `<div style="border-top:1px solid #ec4899; margin-top:3px; padding-top:2px;">
+      <span style="color:#ec4899; font-weight:bold;">
+        ★ ${item.bachKimStat.desc}
+      </span>
+    </div>`;
+  }
+
   return html;
 }
 
@@ -1284,7 +1363,6 @@ function openCompareModal(invIdx) {
     inheritTag.innerText = "";
   }
 
-  // So sánh độ lệch chỉ số cốt lõi
   let diffHtml = "";
   const curAtk = curItem ? curItem.stats.atk || 0 : 0;
   const newAtk = newItem.stats.atk || 0;
@@ -1395,9 +1473,16 @@ function sortInventory() {
 }
 
 /* ==========================================================================
-   6. CƯỜNG HÓA & LÒ RÈN
+   6. HỆ THỐNG LÒ RÈN TOÀN DIỆN (CƯỜNG HÓA / TIẾN PHẨM / CHUYỂN HỆ)
    ========================================================================== */
-function updateForgeSelector() {
+function switchForgeTab(mode) {
+  currentForgeMode = mode;
+  document.querySelectorAll('.forge-subtab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`f-tab-${mode}`).classList.add('active');
+  updateForgeView();
+}
+
+function updateForgeView() {
   const container = document.getElementById('ui-forge-selector-list');
   if (!container) return;
   container.innerHTML = "";
@@ -1411,51 +1496,198 @@ function updateForgeSelector() {
     btn.style.fontSize = "10px";
 
     if (item) {
-      const col = ELEM_COLORS[item.element] || 0xffffff;
-      btn.innerHTML = `<span style="color:#${col.toString(16)}; font-weight:bold;">${item.name}</span> (+${item.enhance})`;
+      const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
+      btn.innerHTML = `<span style="color:${qInfo.color}; font-weight:bold;">${item.name}</span> (+${item.enhance})`;
       btn.onclick = () => selectForgeTarget(slot);
+      if (slot === currentForgeSlot) {
+        btn.style.borderColor = "#ffd700";
+        btn.style.background = "#2a1e12";
+      }
     } else {
       btn.innerHTML = `<span style="color:#555;">[${slot.toUpperCase()}] Trống</span>`;
       btn.disabled = true;
     }
     container.appendChild(btn);
   });
-  selectForgeTarget(currentForgeSlot);
+
+  const item = G.equipped[currentForgeSlot];
+  const nameEl = document.getElementById('ui-forge-target-name');
+  const descEl = document.getElementById('ui-forge-desc-line');
+  const costEl = document.getElementById('ui-forge-cost-line');
+  const actionBtn = document.getElementById('ui-forge-action-btn');
+  const elemPicker = document.getElementById('forge-element-picker');
+
+  if (!item) {
+    nameEl.innerText = "Chưa có trang bị trên ô này";
+    descEl.innerText = "Hãy mặc trang bị để tiến hành rèn đúc";
+    costEl.innerText = "Chi phí: 0 Bạc + 0 Huyền Tinh";
+    actionBtn.style.display = "none";
+    elemPicker.style.display = "none";
+    return;
+  }
+
+  const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
+  nameEl.innerHTML = `<span style="color:${qInfo.color};">${item.name} +${item.enhance}</span> [${qInfo.name}] [${item.element}]`;
+
+  if (currentForgeMode === "enhance") {
+    elemPicker.style.display = "none";
+    actionBtn.style.display = "block";
+    actionBtn.innerText = "CƯỜNG HÓA (+1)";
+    descEl.innerText = `Cấp cường hóa hiện tại: +${item.enhance} (Tối đa +16). Tăng +10% chỉ số cơ bản.`;
+
+    if (item.enhance >= 16) {
+      costEl.innerText = "Trang bị đã đạt Cường Hóa tối đa (+16)!";
+      actionBtn.disabled = true;
+    } else {
+      const silverCost = (item.enhance + 1) * 350;
+      costEl.innerText = `Chi phí: ${silverCost.toLocaleString()} Bạc + 1 Huyền Tinh (Tỷ lệ: 100%)`;
+      actionBtn.disabled = false;
+    }
+  } 
+  else if (currentForgeMode === "quality") {
+    elemPicker.style.display = "none";
+    actionBtn.style.display = "block";
+    const cfg = QUALITY_UPGRADE_CONFIG[item.quality];
+
+    if (!cfg) {
+      descEl.innerText = "Trang bị đã đạt phẩm chất TỐI THƯỢNG (Bạch Kim)! Sở hữu thuộc tính Thần Thoại.";
+      costEl.innerText = "Không thể tiến phẩm thêm";
+      actionBtn.innerText = "ĐÃ ĐẠT CỰC PHẨM";
+      actionBtn.disabled = true;
+    } else {
+      actionBtn.innerText = `TIẾN PHẨM LÊN [${cfg.nextName.toUpperCase()}]`;
+      actionBtn.disabled = false;
+      descEl.innerText = `Mục tiêu: [${cfg.nextName}]. ${cfg.desc}`;
+      costEl.innerText = `Chi phí: ${cfg.silverCost.toLocaleString()} Bạc + ${cfg.crystalCost} Huyền Tinh`;
+    }
+  } 
+  else if (currentForgeMode === "element") {
+    actionBtn.style.display = "none";
+    elemPicker.style.display = "grid";
+    descEl.innerText = "Chọn hệ Ngũ Hành mới cho trang bị để kích hoạt chuỗi Tương Sinh Dòng Ẩn:";
+    costEl.innerText = "Chi phí mỗi lần đổi hệ: 1,500 Bạc + 2 Huyền Tinh";
+  }
 }
 
 function selectForgeTarget(slot) {
   currentForgeSlot = slot;
-  const item = G.equipped[slot];
-  const nameEl = document.getElementById('ui-forge-target-name');
-  const costEl = document.getElementById('ui-forge-cost-line');
-
-  if (item) {
-    const col = ELEM_COLORS[item.element] || 0xffffff;
-    nameEl.innerHTML = `<span style="color:#${col.toString(16)};">${item.name}</span> (+${item.enhance})`;
-    const silverCost = (item.enhance + 1) * 300;
-    costEl.innerText = `Chi phí: ${silverCost} Bạc + 1 Huyền Tinh (Tỷ lệ: 100%)`;
-  } else {
-    nameEl.innerText = "Chưa có trang bị trên ô này";
-    costEl.innerText = "Chi phí: 0 Bạc + 0 Huyền Tinh";
-  }
+  updateForgeView();
 }
 
-function executeEnhance() {
+function executeForgeAction() {
   const item = G.equipped[currentForgeSlot];
-  if (!item) { alert("Vui lòng chọn trang bị đang mặc để cường hóa!"); return; }
-  if (item.enhance >= 16) { alert("Trang bị đã đạt cấp tối đa (+16)!"); return; }
-  if (G.crystals < 1) { alert("Không đủ Huyền Tinh!"); return; }
-  const silverCost = (item.enhance + 1) * 300;
-  if (G.silver < silverCost) { alert("Không đủ Bạc!"); return; }
+  if (!item) {
+    alert("Vui lòng chọn trang bị đang mặc!");
+    return;
+  }
 
-  G.silver -= silverCost;
-  G.crystals -= 1;
-  item.enhance += 1;
+  if (currentForgeMode === "enhance") {
+    if (item.enhance >= 16) {
+      alert("Trang bị đã đạt cấp tối đa (+16)!");
+      return;
+    }
+    const silverCost = (item.enhance + 1) * 350;
+    if (G.silver < silverCost) {
+      alert("Không đủ Bạc để cường hóa!");
+      return;
+    }
+    if (G.crystals < 1) {
+      alert("Không đủ Huyền Tinh!");
+      return;
+    }
 
-  addLog(`<b style="color:#ffd700;">★ RÈN THÀNH CÔNG! [${item.name}] đạt cấp độ +${item.enhance}!</b>`);
+    G.silver -= silverCost;
+    G.crystals -= 1;
+    item.enhance += 1;
+
+    addLog(`<b style="color:#ffd700;">★ CƯỜNG HÓA THÀNH CÔNG! [${item.name}] đạt cấp +${item.enhance}!</b>`);
+  } 
+  else if (currentForgeMode === "quality") {
+    const cfg = QUALITY_UPGRADE_CONFIG[item.quality];
+    if (!cfg) {
+      alert("Trang bị đã đạt phẩm chất Bạch Kim tối thượng!");
+      return;
+    }
+    if (G.silver < cfg.silverCost) {
+      alert(`Không đủ Bạc! Cần ${cfg.silverCost.toLocaleString()} Bạc.`);
+      return;
+    }
+    if (G.crystals < cfg.crystalCost) {
+      alert(`Không đủ Huyền Tinh! Cần ${cfg.crystalCost} Huyền Tinh.`);
+      return;
+    }
+
+    G.silver -= cfg.silverCost;
+    G.crystals -= cfg.crystalCost;
+
+    // Tăng chỉ số theo hệ số phẩm mới
+    Object.keys(item.stats).forEach(k => {
+      if (item.stats[k]) {
+        item.stats[k] = Math.floor(item.stats[k] * cfg.statMult);
+      }
+    });
+
+    item.quality = cfg.next;
+
+    // Tăng uy lực dòng ẩn
+    if (item.hiddenStats && item.hiddenStats.val) {
+      item.hiddenStats.val = Math.floor(item.hiddenStats.val * 1.4);
+      if (item.hiddenStats.statKey === "elementalAtk") {
+        item.hiddenStats.desc = `Băng Sát Ngoại Công +${item.hiddenStats.val}`;
+      } else if (item.hiddenStats.statKey === "allResist") {
+        item.hiddenStats.desc = `Kháng Tất Cả +${item.hiddenStats.val}%`;
+      } else if (item.hiddenStats.statKey === "recovery") {
+        item.hiddenStats.desc = `Thời Gian Phục Hồi -${item.hiddenStats.val}%`;
+      } else if (item.hiddenStats.statKey === "critDmg") {
+        item.hiddenStats.desc = `Sát Thương Bạo Kích +${item.hiddenStats.val}%`;
+      } else if (item.hiddenStats.statKey === "eva") {
+        item.hiddenStats.desc = `Thân Pháp Né Tránh +${item.hiddenStats.val}%`;
+      } else if (item.hiddenStats.statKey === "lifeSteal") {
+        item.hiddenStats.desc = `Hút Sinh Lực +${item.hiddenStats.val}%`;
+      }
+    }
+
+    // Nếu đạt phẩm Bạch Kim, ban tặng Dòng Thần Thoại
+    if (item.quality === "BACH_KIM") {
+      item.bachKimStat = getMythicStatBySlot(item.slot);
+      addLog(`<b style="color:#ec4899;">★ ĐỘT PHÁ BẠCH KIM! Khai mở thuộc tính Thần Thoại: [${item.bachKimStat.desc}]!</b>`);
+    } else {
+      addLog(`<b style="color:#ffd700;">★ TIẾN PHẨM THÀNH CÔNG! [${item.name}] đã thăng hoa thành phẩm chất [${cfg.nextName}]!</b>`);
+    }
+  }
+
   updateTopBar();
   renderInventoryUI();
-  selectForgeTarget(currentForgeSlot);
+  updateForgeView();
+  saveGame();
+}
+
+function executeChangeElement(targetElem) {
+  const item = G.equipped[currentForgeSlot];
+  if (!item) return;
+
+  if (item.element === targetElem) {
+    alert("Trang bị này vốn đã mang hệ " + targetElem);
+    return;
+  }
+  if (G.silver < 1500) {
+    alert("Không đủ 1,500 Bạc để chuyển hệ!");
+    return;
+  }
+  if (G.crystals < 2) {
+    alert("Không đủ 2 Huyền Tinh để chuyển hệ!");
+    return;
+  }
+
+  G.silver -= 1500;
+  G.crystals -= 2;
+  item.element = targetElem;
+
+  addLog(`<b style="color:#38bdf8;">Đã chuyển hóa hệ ngũ hành [${item.name}] sang hệ [${targetElem}]!</b>`);
+  resolveEquippedHiddenAttrs();
+  updateTopBar();
+  renderInventoryUI();
+  updateForgeView();
   saveGame();
 }
 
@@ -1597,7 +1829,6 @@ function drawBackground() {
 }
 drawBackground();
 
-// Lá cây rơi
 const leaves = [];
 for (let i = 0; i < 15; i++) {
   const l = new PIXI.Graphics();
@@ -1721,16 +1952,13 @@ function showDamageNumber(dmg, isCrit, isLifeSteal = false) {
 function combatTick() {
   const stats = calculateHeroStats();
 
-  // 1. Kiểm tra sát thương cơ bản Min - Max
   let baseDmg = Math.floor(stats.atkMin + Math.random() * (stats.atkMax - stats.atkMin));
 
-  // 2. Kiểm tra Bạo Kích (Chí Mạng)
   const isCrit = Math.random() < stats.critRate;
   if (isCrit) {
     baseDmg = Math.floor(baseDmg * (stats.critDmgPct / 100));
   }
 
-  // 3. Tích Lũy Nộ Khí & Xuất Tuyệt Kỹ
   let isUlt = false;
   if (G.rage >= 100) {
     isUlt = true;
@@ -1742,23 +1970,19 @@ function combatTick() {
   }
   updateRageBar();
 
-  // 4. Ngũ Hành Tương Khắc
   const curSect = SECT_CONFIG[G.activeSect];
   if (COUNTERS[curSect.elem] === enemy.elem) baseDmg = Math.floor(baseDmg * 1.35);
   else if (COUNTERS[enemy.elem] === curSect.elem) baseDmg = Math.floor(baseDmg * 0.80);
 
-  // 5. Trừ máu quái
   enemy.hp = Math.max(0, enemy.hp - baseDmg);
   showDamageNumber(baseDmg, isCrit);
   updateHpBar();
 
-  // 6. Hiệu ứng Hút Sinh Lực (Life Steal)
   if (stats.lifeStealPct > 0) {
     const healAmount = Math.max(1, Math.floor(baseDmg * (stats.lifeStealPct / 100)));
     showDamageNumber(healAmount, false, true);
   }
 
-  // Lướt chém
   pContainer.x = 115;
   setTimeout(() => { pContainer.x = 85; }, 100);
 
@@ -1796,7 +2020,6 @@ function handleEnemyDefeat() {
     G.kills++;
     if (Math.random() < 0.25) G.crystals += 1;
 
-    // Tỷ lệ rơi trang bị dã ngoại
     if (Math.random() < 0.15 && G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
@@ -1999,6 +2222,7 @@ function navigateTab(tabId) {
   if (tabId === 'tab-maps') renderMapList();
   if (tabId === 'tab-skills') renderSkillTree();
   if (tabId === 'tab-stats') updateF3UI();
+  if (tabId === 'tab-forge') updateForgeView();
 }
 
 /* ==========================================================================
