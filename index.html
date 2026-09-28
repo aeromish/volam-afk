@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Võ Lâm AFK H5 - Bản Đóng Gói Toàn Diện</title>
-  <!-- Pixi.js Engine v7 -->
+  <title>Võ Lâm AFK H5 - Thuộc Tính Trang Bị Chuẩn Võ Lâm</title>
+  <!-- Pixi.js Canvas Engine v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
   <style>
     :root {
@@ -95,7 +95,7 @@
       position: relative;
     }
 
-    /* NHANH 5 PHÁI */
+    /* VÒNG 5 MÔN PHÁI */
     .sect-wheel {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -134,7 +134,7 @@
       z-index: 5;
     }
 
-    /* NỘ KHÍ & BẢN ĐỒ */
+    /* SUBBAR NỘ KHÍ & BẢN ĐỒ */
     .subbar {
       padding: 3px 8px;
       background: #121212;
@@ -210,7 +210,7 @@
       animation: pulse 1s infinite alternate;
     }
 
-    /* TABS */
+    /* DASHBOARD TABS */
     .dashboard-tabs {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -235,7 +235,7 @@
       font-weight: bold;
     }
 
-    /* VIEW PANELS */
+    /* TAB CONTENT PANELS */
     .tab-view {
       padding: 8px;
       min-height: 290px;
@@ -267,52 +267,34 @@
     }
     .btn-action:hover { background: #333; }
 
-    /* TAB 1: VƯỢT ẢI */
-    .stage-card {
-      border: 1px solid var(--color-border-muted);
-      background: #0f0f0f;
-      padding: 8px;
-      margin-bottom: 8px;
+    /* BẢNG THUỘC TÍNH F3 */
+    .f3-overview-banner {
+      background: #14110b;
+      border: 1px solid #b45309;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .boss-trigger-btn {
-      width: 100%;
-      background: #450a0a;
-      border: 1px solid #ef4444;
-      color: #ffcccc;
-      font-weight: bold;
-      padding: 7px;
-      cursor: pointer;
-      display: none;
-      animation: pulse 1s infinite alternate;
-      font-size: 11px;
-    }
-    .boss-trigger-btn.ready { display: block; }
-    @keyframes pulse { from { opacity: 0.8; } to { opacity: 1; filter: drop-shadow(0 0 6px #ef4444); } }
-
-    /* TAB 2: NHÂN VẬT & KỸ NĂNG */
     .f3-stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 4px;
+      gap: 3px 8px;
       font-size: 10.5px;
       background: #0d0d0d;
       border: 1px solid #242424;
       padding: 6px;
       margin-bottom: 8px;
     }
-    .f3-stat-item { display: flex; justify-content: space-between; padding: 1px 4px; }
-    .skill-card-row {
-      background: #121212;
-      border: 1px solid #333;
-      padding: 6px;
-      margin-bottom: 5px;
+    .f3-stat-item {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 6px;
+      padding: 1.5px 4px;
+      border-bottom: 1px dashed #1a1a1a;
     }
 
-    /* TAB 3: TRANG BỊ & TÚI ĐỒ */
+    /* TRANG BỊ & TÚI ĐỒ */
     .equipped-grid-6 {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -352,7 +334,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 52px;
+      min-height: 54px;
       cursor: pointer;
       position: relative;
     }
@@ -366,13 +348,7 @@
       cursor: default;
     }
 
-    /* TAB 5: BẢN ĐỒ & DÃ TẨU */
-    .map-category-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 4px;
-      margin-bottom: 8px;
-    }
+    /* BẢN ĐỒ & DÃ TẨU */
     .map-card-list {
       display: flex;
       flex-direction: column;
@@ -395,20 +371,6 @@
       background: #1e190a;
     }
 
-    .milestone-container {
-      background: #0e0e0e;
-      border: 1px solid #222;
-      padding: 6px;
-    }
-    .milestone-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 0;
-      border-bottom: 1px solid #1a1a1a;
-      font-size: 10px;
-    }
-
     /* LOG CONSOLE */
     #combat-log-stream {
       height: 65px;
@@ -421,7 +383,7 @@
       color: #777;
     }
 
-    /* MODAL CHUNG */
+    /* MODAL */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -437,20 +399,21 @@
       background: #0d0f12;
       border: 2px solid var(--color-text-tertiary);
       padding: 10px;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
-    /* MODAL SO SÁNH TRANG BỊ 2 CỘT */
     .comparison-grid-2col {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
-      margin: 8px 0;
+      margin: 6px 0;
     }
     .compare-card {
       background: #121418;
       border: 1px solid #333;
       padding: 6px;
-      font-size: 10px;
+      font-size: 9.5px;
     }
     .stat-diff-positive { color: #22c55e; font-weight: bold; }
     .stat-diff-negative { color: #ef4444; font-weight: bold; }
@@ -460,10 +423,10 @@
 
 <div id="game-wrapper">
 
-  <!-- 1. TOP STATS -->
+  <!-- 1. TOP HEADER -->
   <div class="top-header">
     <div>Hiệp Khách: <span class="header-stat" id="ui-char-name">Vô Danh</span> (<span id="ui-lvl" style="color:#ffd700;">Lv.1</span>)</div>
-    <div>Bạc: <span class="header-stat" id="ui-silver" style="color:#fff;">500</span></div>
+    <div>Bạc: <span class="header-stat" id="ui-silver" style="color:#fff;">800</span></div>
     <div>H.Tinh: <span class="header-stat" id="ui-crystals" style="color:#a855f7;">5</span></div>
     <button class="btn-reset-char" title="Xóa dữ liệu tạo lại từ Lv 1" onclick="promptResetCharacter()">Tạo Lại</button>
   </div>
@@ -486,7 +449,7 @@
     <button class="sect-chip" id="chip-vo_dang" onclick="switchSect('vo_dang')">Võ Đang<br><small>THỔ</small></button>
   </div>
 
-  <!-- 4. SUBBAR (NỘ KHÍ & BẢN ĐỒ HIỆN TẠI) -->
+  <!-- 4. SUBBAR (NỘ KHÍ & BẢN ĐỒ) -->
   <div class="subbar">
     <span>Nộ:</span>
     <div class="rage-track">
@@ -507,7 +470,7 @@
     <button class="btn-quest-action" id="ui-quest-btn" onclick="handleQuestButton()">Đi Ngay</button>
   </div>
 
-  <!-- 6. DASHBOARD TABS (6 TABS) -->
+  <!-- 6. DASHBOARD TABS -->
   <div class="dashboard-tabs">
     <button class="dash-btn active" onclick="navigateTab('tab-afk')">VƯỢT ẢI</button>
     <button class="dash-btn" onclick="navigateTab('tab-stats')">NHÂN VẬT</button>
@@ -520,34 +483,51 @@
   <!-- TAB 1: VƯỢT ẢI -->
   <div class="tab-view active" id="tab-afk">
     <div class="panel-header">
-      <span id="ui-stage-name">Bản Đồ: Ba Lăng Huyện (Ải 1)</span>
+      <span id="ui-stage-name">Bản Đồ: Ba Lăng Huyện</span>
       <span id="ui-wave-counter" style="color: #ffcc00;">Tiến Độ: 0/5 Quái</span>
     </div>
-    <div class="stage-card">
+    <div style="border:1px solid var(--color-border-muted); background:#0f0f0f; padding:8px; margin-bottom:8px;">
       <div style="font-size: 11px; margin-bottom: 4px;">
         Thu hoạch dự kiến: <b id="ui-afk-exp" style="color:#38bdf8;">80 EXP/phút</b> | <b id="ui-afk-silver" style="color:#ffd700;">45 Bạc/phút</b>
       </div>
       <div style="font-size: 10px; color: var(--color-text-secondary); margin-bottom: 6px;">
-        Nhân vật tự động xuất chiêu diệt quái. Quái rơi Bạc, EXP, Huyền Tinh và Trang Bị.
+        Nhân vật tự động xuất chiêu diệt quái. Quái rơi Bạc, EXP, Huyền Tinh và Trang Bị theo thuộc tính từng vị trí.
       </div>
-      <button class="boss-trigger-btn" id="boss-btn" onclick="challengeBoss()">KHIÊU CHIẾN BOSS BẢN ĐỒ</button>
+      <button class="btn-action" style="width:100%; background:#450a0a; border-color:#ef4444; color:#ffcccc; font-weight:bold; display:none;" id="boss-btn" onclick="challengeBoss()">KHIÊU CHIẾN BOSS BẢN ĐỒ</button>
     </div>
   </div>
 
-  <!-- TAB 2: NHÂN VẬT (BẢNG F3 & TIỀM NĂNG) -->
+  <!-- TAB 2: NHÂN VẬT (BẢNG F3 ĐẦY ĐỦ THUỘC TÍNH) -->
   <div class="tab-view" id="tab-stats">
+    <div class="f3-overview-banner">
+      <div>
+        <div style="font-size:12px; font-weight:bold; color:#ffd700;" id="f3-char-full-title">Hiệp Khách Cấp 1</div>
+        <div style="font-size:9.5px; color:#aaa;" id="f3-char-sect-sub">Tông Môn: Vô Môn Phái [VÔ HỆ]</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:9.5px; color:#888;">LỰC CHIẾN TỔNG</div>
+        <div style="font-size:14px; font-weight:bold; color:#38bdf8;" id="f3-battle-power">350</div>
+      </div>
+    </div>
+
     <div class="panel-header">
-      <span>THUỘC TÍNH F3 (<span id="ui-sect-title" style="color:#ffd700;">Vô Môn Phái</span>)</span>
+      <span>THUỘC TÍNH CHI TIẾT (F3)</span>
       <span>Điểm dư: <b id="ui-free-pts" style="color:#ffcc00;">5</b></span>
     </div>
 
     <div class="f3-stats-grid">
       <div class="f3-stat-item"><span>Sinh Lực:</span><b id="f3-hp" style="color:#22c55e;">800/800</b></div>
       <div class="f3-stat-item"><span>Nội Lực:</span><b id="f3-mp" style="color:#38bdf8;">300/300</b></div>
-      <div class="f3-stat-item"><span>Lực Công Kích:</span><b id="f3-atk" style="color:#ffd700;">55 - 75</b></div>
-      <div class="f3-stat-item"><span>Phòng Ngự Giáp:</span><b id="f3-def" style="color:#bab097;">30</b></div>
-      <div class="f3-stat-item"><span>Chí Mạng:</span><b id="f3-crit" style="color:#f59e0b;">10%</b></div>
+      <div class="f3-stat-item"><span>Lực Công Kích:</span><b id="f3-atk" style="color:#ffd700;">45 - 65</b></div>
+      <div class="f3-stat-item"><span>Phòng Ngự Giáp:</span><b id="f3-def" style="color:#bab097;">30 (<span id="f3-dr">18%</span>)</b></div>
+      <div class="f3-stat-item"><span>Tỷ Lệ Chí Mạng:</span><b id="f3-crit" style="color:#f59e0b;">10%</b></div>
+      <div class="f3-stat-item"><span>Sát Thương Bạo Kích:</span><b id="f3-crit-dmg" style="color:#f59e0b;">150%</b></div>
       <div class="f3-stat-item"><span>Né Tránh:</span><b id="f3-eva" style="color:#a855f7;">8%</b></div>
+      <div class="f3-stat-item"><span>Hút Sinh Lực:</span><b id="f3-lifesteal" style="color:#22c55e;">0%</b></div>
+      <div class="f3-stat-item"><span>Kháng Tất Cả:</span><b id="f3-allresist" style="color:#38bdf8;">0%</b></div>
+      <div class="f3-stat-item"><span>Xuyên Thấu Giáp:</span><b id="f3-pierce" style="color:#ffd700;">0%</b></div>
+      <div class="f3-stat-item"><span>Thời Gian Phục Hồi:</span><b id="f3-recovery" style="color:#bab097;">-0%</b></div>
+      <div class="f3-stat-item"><span>Hồi Phục Sinh Lực:</span><b id="f3-hpregen" style="color:#22c55e;">+5 HP/s</b></div>
     </div>
 
     <div class="panel-header"><span>PHÂN BỔ TIỀM NĂNG</span></div>
@@ -584,7 +564,7 @@
     <button class="btn-action" style="width:100%;" onclick="resetPotentialPoints()">TẨY ĐIỂM TIỀM NĂNG (MIỄN PHÍ)</button>
   </div>
 
-  <!-- TAB 3: KỸ NĂNG MÔN PHÁI -->
+  <!-- TAB 3: KỸ NĂNG -->
   <div class="tab-view" id="tab-skills">
     <div class="panel-header">
       <span>KỸ NĂNG MÔN PHÁI</span>
@@ -643,61 +623,54 @@
     <div class="inventory-grid-3col" id="ui-inventory-grid"></div>
   </div>
 
-  <!-- TAB 5: BẢN ĐỒ & DÃ TẨU -->
+  <!-- TAB 5: BẢN ĐỒ -->
   <div class="tab-view" id="tab-maps">
-    <div class="map-category-tabs">
-      <button class="btn-action" id="btn-mapcat-train" onclick="switchMapCat('train')">Luyện Công</button>
-      <button class="btn-action" id="btn-mapcat-event" onclick="switchMapCat('event')">Sự Kiện</button>
-      <button class="btn-action" id="btn-mapcat-boss" onclick="switchMapCat('boss')">Boss Thế Giới</button>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:8px;">
+      <button class="btn-action" id="btn-mapcat-train" style="background:#b45309;" onclick="switchMapCat('train')">Luyện Công</button>
+      <button class="btn-action" id="btn-mapcat-boss" onclick="switchMapCat('boss')">Boss Dã Ngoại</button>
     </div>
-
     <div class="map-card-list" id="map-list-container"></div>
-
-    <div class="panel-header" style="margin-top:6px;">
-      <span>MỐC THƯỞNG DÃ TẨU (ĐÃ HOÀN THÀNH: <b id="ui-datau-streak" style="color:#ffd700;">0</b>)</span>
-    </div>
-    <div class="milestone-container" id="datau-milestones-container"></div>
   </div>
 
   <!-- TAB 6: LÒ RÈN -->
   <div class="tab-view" id="tab-forge">
     <div class="panel-header">
-      <span>CƯỜNG HÓA TRANG BỊ</span>
+      <span>LÒ RÈN HUYỀN TINH</span>
       <span>Huyền Tinh: <b id="ui-forge-crystals" style="color:#a855f7;">5</b></span>
     </div>
     <div style="background:#111; border:1px solid #333; padding:8px; text-align:center; margin-bottom:8px;">
       <div style="font-size:10px; color:#888;">TRANG BỊ ĐANG CHỌN:</div>
       <div style="font-size:12px; font-weight:bold; color:#ffd700; margin:4px 0;" id="ui-forge-target-name">Chưa chọn</div>
-      <div style="font-size:10.5px; margin-bottom:8px;" id="ui-forge-cost-line">Chi phí: 0 Bạc + 1 Huyền Tinh</div>
+      <div style="font-size:10px; margin-bottom:8px;" id="ui-forge-cost-line">Chi phí: 0 Bạc + 1 Huyền Tinh</div>
       <button class="btn-action" style="width:100%; background:#b45309; color:#fff; font-weight:bold; padding:6px;" onclick="executeEnhance()">CƯỜNG HÓA (+1 ĐẾN +16)</button>
     </div>
-    <div class="panel-header"><span>CHỌN Ô TRÊN NGƯỜI ĐỂ RÈN:</span></div>
+    <div class="panel-header"><span>CHỌN TRANG BỊ TRÊN NGƯỜI ĐỂ RÈN:</span></div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;" id="ui-forge-selector-list"></div>
   </div>
 
-  <!-- LOG CONSOLE -->
+  <!-- COMBAT LOG -->
   <div id="combat-log-stream"></div>
 
-  <!-- MODAL SO SÁNH TRANG BỊ (EQUIPMENT COMPARISON) -->
+  <!-- MODAL SO SÁNH TRANG BỊ ĐẦY ĐỦ THUỘC TÍNH -->
   <div class="modal-overlay" id="compare-modal">
     <div class="modal-box">
       <div class="panel-header">
-        <span>SO SÁNH TRANG BỊ</span>
+        <span>SO SÁNH TRANG BỊ CHI TIẾT</span>
         <span style="cursor:pointer;" onclick="closeCompareModal()">✕</span>
       </div>
 
       <div class="comparison-grid-2col">
         <!-- ĐANG MẶC -->
         <div class="compare-card">
-          <div style="color:#888; font-size:9.5px; border-bottom:1px solid #222; padding-bottom:2px;">[ĐANG MẶC]</div>
-          <div id="cmp-cur-name" style="font-weight:bold; margin-top:2px;">Trống</div>
-          <div id="cmp-cur-stats" style="color:#aaa; font-size:9.5px; margin-top:4px;">-</div>
+          <div style="color:#888; font-size:9px; border-bottom:1px solid #222; padding-bottom:2px;">[ĐANG MẶC TRÊN NGƯỜI]</div>
+          <div id="cmp-cur-name" style="font-weight:bold; margin-top:2px; font-size:10.5px;">Trống</div>
+          <div id="cmp-cur-stats" style="color:#aaa; margin-top:4px; line-height:16px;">-</div>
         </div>
         <!-- MỚI TRONG TÚI -->
         <div class="compare-card" style="border-color:#ffd700;">
-          <div style="color:#ffd700; font-size:9.5px; border-bottom:1px solid #222; padding-bottom:2px;">[TRANG BỊ MỚI]</div>
-          <div id="cmp-new-name" style="font-weight:bold; margin-top:2px;">-</div>
-          <div id="cmp-new-stats" style="color:#fff; font-size:9.5px; margin-top:4px;">-</div>
+          <div style="color:#ffd700; font-size:9px; border-bottom:1px solid #222; padding-bottom:2px;">[TRANG BỊ MỚI TRONG TÚI]</div>
+          <div id="cmp-new-name" style="font-weight:bold; margin-top:2px; font-size:10.5px;">-</div>
+          <div id="cmp-new-stats" style="color:#fff; margin-top:4px; line-height:16px;">-</div>
           <div id="cmp-inherit-tag" style="color:#22c55e; font-size:9px; margin-top:4px; font-weight:bold;"></div>
         </div>
       </div>
@@ -741,7 +714,7 @@
 
 <script>
 /* ==========================================================================
-   1. CẤU HÌNH DỮ LIỆU & HỆ THỐNG MAPS, SKILLS, QUESTS
+   1. CẤU HÌNH NGŨ HÀNH & HỆ THỐNG TRANG BỊ CHUYÊN BIỆT
    ========================================================================== */
 function safeNum(val, fallback = 0) {
   const n = Number(val);
@@ -761,7 +734,7 @@ const COUNTERS = { KIM: "MOC", MOC: "THO", THO: "THUY", THUY: "HOA", HOA: "KIM" 
 const GENERATES = { KIM: "THUY", THUY: "MOC", MOC: "HOA", HOA: "THO", THO: "KIM" };
 
 const SECT_CONFIG = {
-  vo_mon_phai: { name: "Vô Môn Phái", elem: "VO_HE", color: ELEM_COLORS.VO_HE, ultName: "Quyền Cước Sơ Khai", ultMult: 1.5 },
+  vo_mon_phai: { name: "Vô Môn Phái", elem: "VO_HE", color: ELEM_COLORS.VO_HE, ultName: "Quyền Cước Nhập Môn", ultMult: 1.4 },
   thieu_lam:    { name: "Thiếu Lâm",    elem: "KIM",   color: ELEM_COLORS.KIM,   ultName: "Sư Tử Hống",        ultMult: 2.8 },
   duong_mon:    { name: "Đường Môn",    elem: "MOC",   color: ELEM_COLORS.MOC,   ultName: "Bão Vũ Lê Hoa",      ultMult: 3.2 },
   nga_mi:       { name: "Nga Mi",       elem: "THUY",  color: ELEM_COLORS.THUY,  ultName: "Băng Tâm Tiên Tử",  ultMult: 2.2 },
@@ -772,33 +745,33 @@ const SECT_CONFIG = {
 // CÂY KỸ NĂNG THEO MÔN PHÁI
 const SECT_SKILLS_DB = {
   thieu_lam: [
-    { id: "tl_1", name: "La Hán Trận", type: "passive", desc: "Tăng +15% Giáp & Phản 10% sát thương", maxLvl: 20 },
-    { id: "tl_2", name: "Kim Cang Quyền", type: "active", desc: "Tấn công gây 180% sát thương Kim", maxLvl: 20 },
-    { id: "tl_3", name: "Sư Tử Hống", type: "ult", desc: "Gây choáng toàn bộ quái & x2.8 sát thương", maxLvl: 20 }
+    { id: "tl_1", name: "La Hán Trận", type: "passive", desc: "+15% Giáp & Phản 10% sát thương", maxLvl: 20 },
+    { id: "tl_2", name: "Kim Cang Quyền", type: "active", desc: "Tấn công 180% sát thương Kim", maxLvl: 20 },
+    { id: "tl_3", name: "Sư Tử Hống", type: "ult", desc: "Gây choáng & x2.8 sát thương Kim", maxLvl: 20 }
   ],
   duong_mon: [
-    { id: "dm_1", name: "Tâm Ma Thần Công", type: "passive", desc: "Tăng +12% Tỷ lệ Bạo kích & 15% Xuyên Giáp", maxLvl: 20 },
-    { id: "dm_2", name: "Đoạt Hồn Tiêu", type: "active", desc: "Phóng tiêu kịch độc gây 210% sát thương Mộc", maxLvl: 20 },
-    { id: "dm_3", name: "Bão Vũ Lê Hoa", type: "ult", desc: "Mưa phi tiêu diện rộng x3.2 sát thương", maxLvl: 20 }
+    { id: "dm_1", name: "Tâm Ma Thần Công", type: "passive", desc: "+12% Bạo Kích & +15% Xuyên Giáp", maxLvl: 20 },
+    { id: "dm_2", name: "Đoạt Hồn Tiêu", type: "active", desc: "Tiêu độc 210% sát thương Mộc", maxLvl: 20 },
+    { id: "dm_3", name: "Bão Vũ Lê Hoa", type: "ult", desc: "Mưa bão tiêu x3.2 sát thương Mộc", maxLvl: 20 }
   ],
   nga_mi: [
-    { id: "nm_1", name: "Mộng Điệp", type: "passive", desc: "Tăng +15% Kháng Tất Cả & Hút 8% Sinh Lực", maxLvl: 20 },
-    { id: "nm_2", name: "Phong Sương Toái Ảnh", type: "active", desc: "Đóng băng mục tiêu gây 170% sát thương Thủy", maxLvl: 20 },
+    { id: "nm_1", name: "Mộng Điệp", type: "passive", desc: "+15% Kháng Tất Cả & Hút 8% Sinh Lực", maxLvl: 20 },
+    { id: "nm_2", name: "Phong Sương Toái Ảnh", type: "active", desc: "Đóng băng 170% sát thương Thủy", maxLvl: 20 },
     { id: "nm_3", name: "Băng Tâm Tiên Tử", type: "ult", desc: "Hồi 35% HP & x2.2 sát thương Thủy", maxLvl: 20 }
   ],
   cai_bang: [
-    { id: "cb_1", name: "Túy Điệp Cuồng Vũ", type: "passive", desc: "Tăng +15% Né Tránh, đòn đánh nổ hỏa hoạn", maxLvl: 20 },
-    { id: "cb_2", name: "Kháng Long Hữu Hối", type: "active", desc: "Chưởng rồng lửa gây 220% sát thương Hỏa", maxLvl: 20 },
-    { id: "cb_3", name: "Hàng Long Thập Bát", type: "ult", desc: "Bộc phát 18 kình long x3.4 sát thương", maxLvl: 20 }
+    { id: "cb_1", name: "Túy Điệp Cuồng Vũ", type: "passive", desc: "+15% Né Tránh, đòn đánh nổ Hỏa", maxLvl: 20 },
+    { id: "cb_2", name: "Kháng Long Hữu Hối", type: "active", desc: "Kình long 220% sát thương Hỏa", maxLvl: 20 },
+    { id: "cb_3", name: "Hàng Long Thập Bát", type: "ult", desc: "18 rồng lửa x3.4 sát thương Hỏa", maxLvl: 20 }
   ],
   vo_dang: [
-    { id: "vd_1", name: "Tọa Vọng Vô Vi", type: "passive", desc: "Dùng MP đỡ 50% sát thương thay cho HP", maxLvl: 20 },
-    { id: "vd_2", name: "Thái Cực Kiếm Pháp", type: "active", desc: "Kiếm trận Âm Dương gây 190% sát thương Thổ", maxLvl: 20 },
-    { id: "vd_3", name: "Vô Ngã Vô Kiếm", type: "ult", desc: "Phi kiếm tê liệt kẻ địch x3.0 sát thương", maxLvl: 20 }
+    { id: "vd_1", name: "Tọa Vọng Vô Vi", type: "passive", desc: "Dùng MP đỡ 50% sát thương thay HP", maxLvl: 20 },
+    { id: "vd_2", name: "Thái Cực Kiếm Pháp", type: "active", desc: "Kiếm trận Âm Dương 190% ST Thổ", maxLvl: 20 },
+    { id: "vd_3", name: "Vô Ngã Vô Kiếm", type: "ult", desc: "Phi kiếm tê liệt x3.0 sát thương Thổ", maxLvl: 20 }
   ],
   vo_mon_phai: [
-    { id: "vmp_1", name: "Khí Công Nhập Môn", type: "passive", desc: "Tăng +50 Máu & +5 Công", maxLvl: 5 },
-    { id: "vmp_2", name: "Quyền Pháp Cơ Bản", type: "active", desc: "Đánh cận chiến gây 120% sát thương", maxLvl: 5 }
+    { id: "vmp_1", name: "Khí Công Nhập Môn", type: "passive", desc: "+50 Máu & +5 Công cơ bản", maxLvl: 5 },
+    { id: "vmp_2", name: "Quyền Cước Sơ Khai", type: "active", desc: "Đòn đánh gây 120% sát thương", maxLvl: 5 }
   ]
 };
 
@@ -811,26 +784,16 @@ const MAPS_DATABASE = {
     { id: "map_tuongduong", name: "Tương Dương Thành", reqLvl: 50, elem: "KIM", expRate: 480, silverRate: 280, bossName: "Kim Giáp Thiết Thống" },
     { id: "map_samac", name: "Sa Mạc Địa Biểu", reqLvl: 70, elem: "THUY", expRate: 850, silverRate: 520, bossName: "Băng Tinh Sa Quái" }
   ],
-  event: [
-    { id: "ev_phonglangdo", name: "Phong Lăng Độ (Thuyền Chiến)", reqLvl: 20, elem: "THUY", expRate: 400, silverRate: 300, desc: "Tăng gấp 3 EXP & Bạc", bossName: "Thủy Tặc Đoạt Mệnh" },
-    { id: "ev_daluyenson", name: "Dã Luyện Sơn (Đào Quặng)", reqLvl: 25, elem: "THO", expRate: 200, silverRate: 200, desc: "Tăng tỉ lệ rơi Huyền Tinh", bossName: "Cự Thạch Cuồng Nhân" }
-  ],
   boss: [
-    { id: "boss_lamyy", name: "Thủ Lĩnh Dã Ngoại: Lam Y Y", reqLvl: 25, elem: "THUY", hpMult: 8, desc: "Rơi trang bị Hoàng Kim môn phái" },
-    { id: "boss_cobac", name: "Thủ Lĩnh Dã Ngoại: Cổ Bách", reqLvl: 45, elem: "HOA", hpMult: 12, desc: "Rơi trang bị Hoàng Kim / Bạch Kim" },
+    { id: "boss_lamyy", name: "Thủ Lĩnh: Lam Y Y", reqLvl: 25, elem: "THUY", hpMult: 8, desc: "Rơi trang bị Hoàng Kim môn phái" },
+    { id: "boss_cobac", name: "Thủ Lĩnh: Cổ Bách", reqLvl: 45, elem: "HOA", hpMult: 12, desc: "Rơi trang bị Hoàng Kim / Bạch Kim" },
     { id: "boss_docco", name: "Minh Chủ: Độc Cô Kiếm", reqLvl: 65, elem: "KIM", hpMult: 18, desc: "Rơi Thần Binh Tối Thượng" }
   ]
 };
 
-// CÁC MỐC THƯỞNG DÃ TẨU
-const DATAU_MILESTONES = [
-  { target: 5, reward: { silver: 5000, crystals: 5 }, desc: "+5,000 Bạc, +5 Huyền Tinh" },
-  { target: 10, reward: { silver: 15000, crystals: 10, itemTier: "HOANG_KIM" }, desc: "+15k Bạc, +10 H.Tinh, 1 Đồ Hoàng Kim" },
-  { target: 20, reward: { silver: 35000, crystals: 20, itemTier: "BACH_KIM" }, desc: "+35k Bạc, +20 H.Tinh, 1 Đồ Bạch Kim" },
-  { target: 30, reward: { silver: 70000, crystals: 35, skillPts: 5 }, desc: "+70k Bạc, +35 H.Tinh, +5 Điểm Kỹ Năng" },
-  { target: 50, reward: { silver: 150000, crystals: 60, itemTier: "BACH_KIM" }, desc: "+150k Bạc, +60 H.Tinh, 1 Rương Thần Binh" }
-];
-
+/* ==========================================================================
+   2. KHÔI PHỤC VÀ LƯU DỮ LIỆU LOCALSTORAGE
+   ========================================================================== */
 function getDefaultState() {
   return {
     charName: "Độc Cô Cầu Bại",
@@ -850,7 +813,6 @@ function getDefaultState() {
     questIndex: 0,
     questProgress: 0,
     datauStreak: 0,
-    claimedMilestones: [],
     skillPoints: 1,
     skillAllocations: {},
     lastSaved: Date.now(),
@@ -871,9 +833,6 @@ let currentForgeSlot = "weapon";
 let inspectingInvIndex = null;
 let pendingCeremonySect = "thieu_lam";
 
-/* ==========================================================================
-   2. KHÔI PHỤC VÀ LƯU DỮ LIỆU LOCALSTORAGE
-   ========================================================================== */
 function sanitizeState(loaded) {
   const def = getDefaultState();
   if (!loaded || typeof loaded !== "object") return def;
@@ -885,12 +844,11 @@ function sanitizeState(loaded) {
   }
   if (!res.equipped) res.equipped = def.equipped;
   if (!Array.isArray(res.inventory)) res.inventory = [];
-  if (!Array.isArray(res.claimedMilestones)) res.claimedMilestones = [];
   if (!res.skillAllocations) res.skillAllocations = {};
 
   res.level = Math.max(1, safeNum(res.level, 1));
   res.exp = safeNum(res.exp, 0);
-  res.silver = safeNum(res.silver, 500);
+  res.silver = safeNum(res.silver, 800);
   res.crystals = safeNum(res.crystals, 5);
   res.rage = safeNum(res.rage, 0);
   res.datauStreak = safeNum(res.datauStreak, 0);
@@ -921,7 +879,7 @@ function checkOffline() {
 
         document.getElementById('offline-msg').innerHTML = `
           Rời mạng: <b>${mins} phút</b> tại <b>${map.name}</b>.<br>
-          Thu hoạch tích lũy: <b style="color:#38bdf8;">+${expGot} EXP</b>, <b style="color:#ffd700;">+${silverGot} Bạc</b>.
+          Thu hoạch: <b style="color:#38bdf8;">+${expGot} EXP</b>, <b style="color:#ffd700;">+${silverGot} Bạc</b>.
         `;
         document.getElementById('offline-modal').style.display = "flex";
       }
@@ -942,52 +900,231 @@ function closeOfflineModal() {
 }
 
 /* ==========================================================================
-   3. TÍNH TOÁN CHỈ SỐ F3 & LỰC CHIẾN
+   3. HỆ THỐNG THUỘC TÍNH CHUYÊN BIỆT THEO VỊ TRÍ TRANG BỊ
+   ========================================================================== */
+const ITEM_NAMES_POOL = {
+  weapon: ["Tàn Hồng Kiếm", "Long Đao", "Cửu Hoàn Trượng", "Bảo Bổng", "Truy Hồn Tiêu"],
+  helm:   ["Bát Bảo Mão", "Định Quốc Khôi", "Đạo Mão", "Khăn Vải Thô"],
+  armor:  ["Sa Trường Y", "Cà Sa Phật Quang", "Thái Cực Bào", "Thiên Tằm Giáp"],
+  ring:   ["Huyết Thạch Giới", "An Bang Giới Chỉ", "Thúy Vân Thạch"],
+  boots:  ["Phi Vân Ngoa", "Cửu Châu Hài", "Đoạt Phong Hài"],
+  amulet: ["Băng Tinh Liên", "Bạch Hổ Bội", "Hoàng Ngọc Bội"]
+};
+
+/**
+ * Sinh trang bị chuẩn với các dòng thuộc tính sáng & ẩn chuyên biệt cho từng vị trí
+ */
+function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
+  const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
+  const elem = elems[Math.floor(Math.random() * elems.length)];
+  const pool = ITEM_NAMES_POOL[slot] || ["Bảo Vật"];
+  const name = pool[Math.floor(Math.random() * pool.length)];
+
+  // Multiplier phẩm chất
+  let mult = 1.0;
+  if (quality === "THUONG") mult = 0.8;
+  else if (quality === "HOANG_KIM") mult = 1.6;
+  else if (quality === "BACH_KIM") mult = 2.4;
+
+  const stats = {
+    atk: 0,
+    def: 0,
+    hp: 0,
+    mp: 0,
+    critRate: 0,
+    critDmg: 0,
+    eva: 0,
+    allResist: 0,
+    lifeSteal: 0,
+    recovery: 0,
+    pierce: 0,
+    hpRegen: 0
+  };
+
+  const hiddenStats = {
+    statKey: "",
+    val: 0,
+    desc: ""
+  };
+
+  // Thiết kế thuộc tính dòng sáng & dòng ẩn theo từng vị trí (Slot-specific)
+  if (slot === "weapon") {
+    stats.atk = Math.floor((35 + minLvl * 8) * mult);
+    stats.critRate = Math.floor((4 + Math.random() * 6) * (mult > 1 ? 1.3 : 1));
+    stats.pierce = Math.floor(5 * mult);
+
+    hiddenStats.statKey = "elementalAtk";
+    hiddenStats.val = Math.floor(40 + minLvl * 10);
+    hiddenStats.desc = `Băng Sát Ngoại Công +${hiddenStats.val}`;
+  } 
+  else if (slot === "helm") {
+    stats.def = Math.floor((15 + minLvl * 3.5) * mult);
+    stats.hp = Math.floor((60 + minLvl * 20) * mult);
+    stats.hpRegen = Math.floor(4 * mult);
+
+    hiddenStats.statKey = "recovery";
+    hiddenStats.val = Math.floor(15 * mult);
+    hiddenStats.desc = `Thời Gian Phục Hồi -${hiddenStats.val}%`;
+  }
+  else if (slot === "armor") {
+    stats.def = Math.floor((30 + minLvl * 6) * mult);
+    stats.hp = Math.floor((120 + minLvl * 30) * mult);
+    stats.allResist = Math.floor(6 * mult);
+
+    hiddenStats.statKey = "allResist";
+    hiddenStats.val = Math.floor(12 * mult);
+    hiddenStats.desc = `Kháng Tất Cả +${hiddenStats.val}%`;
+  }
+  else if (slot === "ring") {
+    stats.atk = Math.floor((15 + minLvl * 4) * mult);
+    stats.mp = Math.floor((80 + minLvl * 20) * mult);
+    stats.critRate = Math.floor(6 * mult);
+
+    hiddenStats.statKey = "critDmg";
+    hiddenStats.val = Math.floor(25 * mult);
+    hiddenStats.desc = `Sát Thương Chí Mạng +${hiddenStats.val}%`;
+  }
+  else if (slot === "boots") {
+    stats.def = Math.floor((12 + minLvl * 3) * mult);
+    stats.eva = Math.floor(6 * mult);
+    stats.hp = Math.floor((50 + minLvl * 15) * mult);
+
+    hiddenStats.statKey = "eva";
+    hiddenStats.val = Math.floor(10 * mult);
+    hiddenStats.desc = `Thân Pháp Né Tránh +${hiddenStats.val}%`;
+  }
+  else if (slot === "amulet") {
+    stats.hp = Math.floor((80 + minLvl * 25) * mult);
+    stats.mp = Math.floor((60 + minLvl * 15) * mult);
+    stats.allResist = Math.floor(8 * mult);
+
+    hiddenStats.statKey = "lifeSteal";
+    hiddenStats.val = Math.floor(6 * mult);
+    hiddenStats.desc = `Hút Sinh Lực +${hiddenStats.val}%`;
+  }
+
+  return {
+    id: "item_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+    name: name,
+    slot: slot,
+    quality: quality,
+    element: elem,
+    levelReq: minLvl,
+    enhance: 0,
+    stats: stats,
+    hiddenStats: hiddenStats,
+    isSecretActive: false
+  };
+}
+
+/* ==========================================================================
+   4. TÍNH TOÁN BẢNG F3 TOÀN DIỆN TỪ TIỀM NĂNG & TRANG BỊ
    ========================================================================== */
 function calculateHeroStats() {
   const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10 };
   const lvl = G.level;
 
-  let baseAtkMin = 30 + lvl * 5 + prof.str * 2.0;
-  let baseAtkMax = 45 + lvl * 7 + prof.str * 2.8;
-  let baseDef = 15 + lvl * 3 + prof.str * 1.2;
-  let maxHp = 500 + lvl * 60 + prof.vit * 18;
-  let maxMp = 200 + lvl * 25 + prof.int * 10;
-  let critRate = 0.08 + prof.dex * 0.0015;
-  let evasion = 0.06 + prof.dex * 0.0012;
+  // 1. Chỉ số cơ bản từ Level và Tiềm Năng
+  let baseAtkMin = 25 + lvl * 5 + prof.str * 1.8;
+  let baseAtkMax = 40 + lvl * 7 + prof.str * 2.6;
+  let baseDef = 12 + lvl * 2.8 + prof.str * 1.2;
+  let maxHp = 450 + lvl * 55 + prof.vit * 18;
+  let maxMp = 180 + lvl * 20 + prof.int * 10;
+  let critRate = 0.06 + prof.dex * 0.0012;
+  let critDmg = 1.5; // 150%
+  let evasion = 0.05 + prof.dex * 0.001;
+  let allResist = 0;
+  let lifeSteal = 0;
+  let recovery = 0;
+  let pierce = 0;
+  let hpRegen = 4 + prof.vit * 0.3;
 
-  // Cộng từ Trang Bị và Cường Hóa
+  // 2. Cộng dồn từ 6 Trang Bị Đang Mặc (Đã tính Cường Hóa và Dòng Ẩn)
   Object.values(G.equipped).forEach(item => {
-    if (item && item.stats) {
-      const enhanceBonus = 1 + (item.enhance * 0.1);
+    if (!item) return;
+
+    // Hệ số cường hóa (+10% mỗi cấp)
+    const enhanceMult = 1 + (item.enhance * 0.1);
+
+    if (item.stats) {
       if (item.stats.atk) {
-        baseAtkMin += item.stats.atk * enhanceBonus;
-        baseAtkMax += (item.stats.atk * 1.3) * enhanceBonus;
+        baseAtkMin += item.stats.atk * enhanceMult;
+        baseAtkMax += (item.stats.atk * 1.3) * enhanceMult;
       }
-      if (item.stats.def) baseDef += item.stats.def * enhanceBonus;
-      if (item.stats.hp) maxHp += item.stats.hp * enhanceBonus;
+      if (item.stats.def) baseDef += item.stats.def * enhanceMult;
+      if (item.stats.hp) maxHp += item.stats.hp * enhanceMult;
+      if (item.stats.mp) maxMp += item.stats.mp * enhanceMult;
+      if (item.stats.critRate) critRate += (item.stats.critRate / 100) * enhanceMult;
+      if (item.stats.critDmg) critDmg += (item.stats.critDmg / 100) * enhanceMult;
+      if (item.stats.eva) evasion += (item.stats.eva / 100) * enhanceMult;
+      if (item.stats.allResist) allResist += item.stats.allResist * enhanceMult;
+      if (item.stats.lifeSteal) lifeSteal += (item.stats.lifeSteal / 100);
+      if (item.stats.recovery) recovery += item.stats.recovery;
+      if (item.stats.pierce) pierce += (item.stats.pierce / 100);
+      if (item.stats.hpRegen) hpRegen += item.stats.hpRegen * enhanceMult;
+    }
+
+    // Nếu dòng ẩn tương sinh được kích hoạt
+    if (item.isSecretActive && item.hiddenStats) {
+      const h = item.hiddenStats;
+      if (h.statKey === "allResist") allResist += h.val;
+      else if (h.statKey === "lifeSteal") lifeSteal += (h.val / 100);
+      else if (h.statKey === "critDmg") critDmg += (h.val / 100);
+      else if (h.statKey === "eva") evasion += (h.val / 100);
+      else if (h.statKey === "recovery") recovery += h.val;
+      else if (h.statKey === "elementalAtk") {
+        baseAtkMin += h.val;
+        baseAtkMax += h.val;
+      }
     }
   });
+
+  // Tỷ lệ giảm sát thương qua giáp (Damage Reduction)
+  const drRate = baseDef / (baseDef + 120 + lvl * 10);
+
+  // Lực chiến tổng hợp (Battle Power)
+  const bp = Math.floor(
+    (baseAtkMax * 3.5) + (baseDef * 4.2) + (maxHp * 0.4) + (maxMp * 0.25) +
+    (critRate * 1200) + (evasion * 1000) + (allResist * 25) + (lifeSteal * 1500)
+  );
 
   return {
     atkMin: Math.floor(baseAtkMin),
     atkMax: Math.floor(baseAtkMax),
     def: Math.floor(baseDef),
+    drPct: Math.min(85, Math.floor(drRate * 100)),
     maxHp: Math.floor(maxHp),
     maxMp: Math.floor(maxMp),
-    critRate: Math.min(0.75, critRate),
-    evasion: Math.min(0.60, evasion)
+    critRate: Math.min(0.85, critRate),
+    critDmgPct: Math.floor(critDmg * 100),
+    evasion: Math.min(0.70, evasion),
+    allResist: Math.min(75, Math.floor(allResist)),
+    lifeStealPct: Math.floor(lifeSteal * 100),
+    recovery: Math.min(70, Math.floor(recovery)),
+    piercePct: Math.min(50, Math.floor(pierce * 100)),
+    hpRegen: Math.floor(hpRegen),
+    battlePower: bp
   };
 }
 
 function updateF3UI() {
   const st = calculateHeroStats();
+  document.getElementById('f3-char-full-title').innerText = `${G.charName} (Cấp ${G.level})`;
+  document.getElementById('f3-char-sect-sub').innerText = `Tông Môn: ${SECT_CONFIG[G.activeSect].name} [${SECT_CONFIG[G.activeSect].elem}]`;
+  document.getElementById('f3-battle-power').innerText = st.battlePower.toLocaleString();
+
   document.getElementById('f3-hp').innerText = `${st.maxHp}/${st.maxHp}`;
   document.getElementById('f3-mp').innerText = `${st.maxMp}/${st.maxMp}`;
   document.getElementById('f3-atk').innerText = `${st.atkMin} - ${st.atkMax}`;
-  document.getElementById('f3-def').innerText = st.def;
+  document.getElementById('f3-def').innerHTML = `${st.def} (<span id="f3-dr">${st.drPct}%</span>)`;
   document.getElementById('f3-crit').innerText = `${Math.floor(st.critRate * 100)}%`;
+  document.getElementById('f3-crit-dmg').innerText = `${st.critDmgPct}%`;
   document.getElementById('f3-eva').innerText = `${Math.floor(st.evasion * 100)}%`;
+  document.getElementById('f3-lifesteal').innerText = `${st.lifeStealPct}%`;
+  document.getElementById('f3-allresist').innerText = `${st.allResist}%`;
+  document.getElementById('f3-pierce').innerText = `${st.piercePct}%`;
+  document.getElementById('f3-recovery').innerText = `-${st.recovery}%`;
+  document.getElementById('f3-hpregen').innerText = `+${st.hpRegen} HP/s`;
 
   const prof = G.sectProfiles[G.activeSect];
   document.getElementById('ui-str').innerText = prof.str;
@@ -995,7 +1132,6 @@ function updateF3UI() {
   document.getElementById('ui-vit').innerText = prof.vit;
   document.getElementById('ui-int').innerText = prof.int;
   document.getElementById('ui-free-pts').innerText = prof.free;
-  document.getElementById('ui-sect-title').innerText = SECT_CONFIG[G.activeSect].name;
 }
 
 function addPoint(attr, val = 1) {
@@ -1017,90 +1153,29 @@ function resetPotentialPoints() {
 }
 
 /* ==========================================================================
-   4. KỸ NĂNG THEO MÔN PHÁI & CỘNG ĐIỂM
+   5. HIỂN THỊ TÚI ĐỒ & SO SÁNH TRANG BỊ
    ========================================================================== */
-function renderSkillTree() {
-  const container = document.getElementById('skill-tree-list');
-  container.innerHTML = "";
-  document.getElementById('ui-skill-pts').innerText = G.skillPoints;
+function resolveEquippedHiddenAttrs() {
+  let activeCount = 0;
+  const triggerMap = { weapon: "amulet", helm: "weapon", armor: "helm", ring: "armor", boots: "ring", amulet: "boots" };
 
-  const skills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
-  skills.forEach(sk => {
-    const curLvl = G.skillAllocations[sk.id] || 0;
-    const row = document.createElement('div');
-    row.className = "skill-card-row";
-    row.innerHTML = `
-      <div style="flex:1;">
-        <div style="font-weight:bold; color:#ffd700; font-size:11px;">
-          ${sk.name} <span style="color:#38bdf8;">(Cấp ${curLvl}/${sk.maxLvl})</span>
-        </div>
-        <div style="font-size:9.5px; color:#888;">${sk.desc}</div>
-      </div>
-      <button class="btn-action" style="padding:4px 8px; font-weight:bold;" onclick="upgradeSkill('${sk.id}', ${sk.maxLvl})">+ Nâng</button>
-    `;
-    container.appendChild(row);
+  Object.keys(triggerMap).forEach(slot => {
+    const item = G.equipped[slot];
+    const indicator = document.getElementById(`slot-act-${slot}`);
+    if (!item) {
+      if (indicator) indicator.innerText = "";
+      return;
+    }
+
+    const srcItem = G.equipped[triggerMap[slot]];
+    const isAct = (srcItem && GENERATES[srcItem.element] === item.element);
+    item.isSecretActive = isAct;
+
+    if (isAct) activeCount++;
+    if (indicator) indicator.innerText = isAct ? "✓ Ẩn" : "";
   });
-}
 
-function upgradeSkill(skillId, maxLvl) {
-  if (G.skillPoints <= 0) {
-    alert("Không đủ Điểm Kỹ Năng! Hãy tăng cấp nhân vật để nhận thêm.");
-    return;
-  }
-  const curLvl = G.skillAllocations[skillId] || 0;
-  if (curLvl >= maxLvl) {
-    alert("Kỹ năng đã đạt cấp tối đa!");
-    return;
-  }
-  G.skillPoints--;
-  G.skillAllocations[skillId] = curLvl + 1;
-  addLog(`<b style="color:#38bdf8;">Nâng cấp kỹ năng thành công! Cấp hiện tại: ${G.skillAllocations[skillId]}</b>`);
-  renderSkillTree();
-  updateF3UI();
-}
-
-/* ==========================================================================
-   5. TRANG BỊ & KẾ THỪA CƯỜNG HÓA KHI THAY THẾ
-   ========================================================================== */
-const ITEM_NAMES = {
-  weapon: ["Tàn Hồng Kiếm", "Long Đao", "Cửu Hoàn Trượng", "Bảo Bổng", "Truy Hồn Tiêu"],
-  helm:   ["Bát Bảo Mão", "Định Quốc Khôi", "Đạo Mão", "Ô Sa Mạo"],
-  armor:  ["Sa Trường Y", "Cà Sa Phật Quang", "Thái Cực Bào", "Thiên Tằm Giáp"],
-  ring:   ["Huyết Thạch Giới", "An Bang Giới Chỉ", "Thúy Vân Thạch"],
-  boots:  ["Phi Vân Ngoa", "Cửu Châu Hài", "Đoạt Phong Hài"],
-  amulet: ["Băng Tinh Liên", "Bạch Hổ Bội", "Thái Cực Bội"]
-};
-
-function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
-  const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
-  const elem = elems[Math.floor(Math.random() * elems.length)];
-  const pool = ITEM_NAMES[slot] || ["Bảo Vật"];
-  const name = pool[Math.floor(Math.random() * pool.length)];
-
-  let baseAtk = 0, baseDef = 0, baseHp = 0;
-  if (slot === "weapon") baseAtk = 30 + minLvl * 8;
-  else if (slot === "armor" || slot === "helm") baseDef = 15 + minLvl * 4;
-  else baseHp = 80 + minLvl * 25;
-
-  let mult = 1.0;
-  if (quality === "HOANG_KIM") mult = 1.6;
-  if (quality === "BACH_KIM") mult = 2.4;
-
-  return {
-    id: "item_" + Date.now() + "_" + Math.floor(Math.random()*1000),
-    name: name,
-    slot: slot,
-    quality: quality,
-    element: elem,
-    levelReq: minLvl,
-    enhance: 0,
-    stats: {
-      atk: Math.floor(baseAtk * mult),
-      def: Math.floor(baseDef * mult),
-      hp: Math.floor(baseHp * mult)
-    },
-    hiddenStat: slot === "weapon" ? "Băng Sát Ngoại Công +60" : "Kháng Tất Cả +18%"
-  };
+  document.getElementById('ui-active-hidden-count').innerText = `Dòng Ẩn: ${activeCount} Kích Hoạt`;
 }
 
 function renderInventoryUI() {
@@ -1115,12 +1190,19 @@ function renderInventoryUI() {
       cell.className = "inv-item-card";
       const col = ELEM_COLORS[item.element] || 0xffffff;
       cell.style.borderColor = `#${col.toString(16)}`;
+
+      let mainStatText = "";
+      if (item.stats.atk) mainStatText = `Công +${item.stats.atk}`;
+      else if (item.stats.def) mainStatText = `Thủ +${item.stats.def}`;
+      else if (item.stats.hp) mainStatText = `HP +${item.stats.hp}`;
+
       cell.innerHTML = `
-        <div style="font-weight:bold; color:#${col.toString(16)}; font-size:10.5px;">${item.name}</div>
-        <div style="font-size:9px; color:#888;">[${item.element}] - ${item.slot.toUpperCase()}</div>
+        <div style="font-weight:bold; color:#${col.toString(16)}; font-size:10px;">${item.name}</div>
+        <div style="font-size:8.5px; color:#888;">[${item.element}] • ${item.slot.toUpperCase()}</div>
+        <div style="font-size:9px; color:#ffd700;">${mainStatText}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-          <span style="font-size:8.5px; color:#ffd700;">+${item.enhance}</span>
-          <span style="font-size:8.5px; color:#aaa;">Cấp ${item.levelReq}</span>
+          <span style="font-size:8.5px; color:#22c55e;">+${item.enhance}</span>
+          <span style="font-size:8px; color:#aaa;">Cấp ${item.levelReq}</span>
         </div>
       `;
       cell.onclick = () => openCompareModal(i);
@@ -1131,7 +1213,7 @@ function renderInventoryUI() {
     grid.appendChild(cell);
   }
 
-  // Render 6 ô trang bị trên người
+  // Cập nhật 6 ô trên người
   const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
   slots.forEach(slot => {
     const it = G.equipped[slot];
@@ -1151,25 +1233,37 @@ function renderInventoryUI() {
   updateF3UI();
 }
 
-function resolveEquippedHiddenAttrs() {
-  let activeCount = 0;
-  const triggerMap = { weapon: "amulet", helm: "weapon", armor: "helm", ring: "armor", boots: "ring", amulet: "boots" };
+function getItemFullStatsHtml(item) {
+  if (!item || !item.stats) return "Không có dữ liệu";
+  const enhanceMult = 1 + (item.enhance * 0.1);
+  let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Hệ: <b style="color:#ffd700;">${item.element}</b></div>`;
 
-  Object.keys(triggerMap).forEach(slot => {
-    const item = G.equipped[slot];
-    const indicator = document.getElementById(`slot-act-${slot}`);
-    if (!item) { if (indicator) indicator.innerText = ""; return; }
+  html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
+  if (item.stats.atk) html += `• Lực Công Kích: +${Math.floor(item.stats.atk * enhanceMult)}<br>`;
+  if (item.stats.def) html += `• Phòng Ngự Giáp: +${Math.floor(item.stats.def * enhanceMult)}<br>`;
+  if (item.stats.hp) html += `• Sinh Lực Tối Đa: +${Math.floor(item.stats.hp * enhanceMult)}<br>`;
+  if (item.stats.mp) html += `• Nội Lực Tối Đa: +${Math.floor(item.stats.mp * enhanceMult)}<br>`;
+  if (item.stats.critRate) html += `• Tỷ Lệ Chí Mạng: +${Math.floor(item.stats.critRate * enhanceMult)}%<br>`;
+  if (item.stats.critDmg) html += `• Sát Thương Bạo Kích: +${Math.floor(item.stats.critDmg * enhanceMult)}%<br>`;
+  if (item.stats.eva) html += `• Thân Pháp Né Tránh: +${Math.floor(item.stats.eva * enhanceMult)}%<br>`;
+  if (item.stats.allResist) html += `• Kháng Tất Cả: +${Math.floor(item.stats.allResist * enhanceMult)}%<br>`;
+  if (item.stats.lifeSteal) html += `• Hút Sinh Lực: +${item.stats.lifeSteal}%<br>`;
+  if (item.stats.recovery) html += `• Thời Gian Phục Hồi: -${item.stats.recovery}%<br>`;
+  if (item.stats.pierce) html += `• Xuyên Thấu Giáp: +${item.stats.pierce}%<br>`;
+  if (item.stats.hpRegen) html += `• Hồi Sinh Lực: +${Math.floor(item.stats.hpRegen * enhanceMult)} HP/s<br>`;
+  html += `</div>`;
 
-    const srcItem = G.equipped[triggerMap[slot]];
-    let isAct = (srcItem && GENERATES[srcItem.element] === item.element);
-    if (isAct) activeCount++;
-    if (indicator) indicator.innerText = isAct ? "✓ Ẩn" : "";
-  });
-
-  document.getElementById('ui-active-hidden-count').innerText = `Dòng Ẩn: ${activeCount} Kích Hoạt`;
+  if (item.hiddenStats) {
+    const isAct = item.isSecretActive;
+    html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">
+      <span style="color:${isAct ? '#ffd700' : '#666'}; font-weight:bold;">
+        • [Ẩn] ${item.hiddenStats.desc} ${isAct ? '✓' : '✗'}
+      </span>
+    </div>`;
+  }
+  return html;
 }
 
-// SO SÁNH TRANG BỊ & KẾ THỪA CƯỜNG HÓA
 function openCompareModal(invIdx) {
   inspectingInvIndex = invIdx;
   const newItem = G.inventory[invIdx];
@@ -1178,12 +1272,11 @@ function openCompareModal(invIdx) {
   const curItem = G.equipped[newItem.slot];
 
   document.getElementById('cmp-cur-name').innerText = curItem ? `${curItem.name} +${curItem.enhance} [${curItem.element}]` : "Ô đang để trống";
-  document.getElementById('cmp-cur-stats').innerText = curItem ? `Công: +${curItem.stats.atk || 0} | Thủ: +${curItem.stats.def || 0} | HP: +${curItem.stats.hp || 0}` : "Không có chỉ số";
+  document.getElementById('cmp-cur-stats').innerHTML = curItem ? getItemFullStatsHtml(curItem) : "Không có thuộc tính";
 
   document.getElementById('cmp-new-name').innerText = `${newItem.name} +${newItem.enhance} [${newItem.element}]`;
-  document.getElementById('cmp-new-stats').innerText = `Công: +${newItem.stats.atk || 0} | Thủ: +${newItem.stats.def || 0} | HP: +${newItem.stats.hp || 0}`;
+  document.getElementById('cmp-new-stats').innerHTML = getItemFullStatsHtml(newItem);
 
-  // Kiểm tra kế thừa cường hóa
   const inheritTag = document.getElementById('cmp-inherit-tag');
   if (curItem && curItem.enhance > newItem.enhance) {
     inheritTag.innerText = `★ Sẽ kế thừa Cường Hóa +${curItem.enhance} từ trang bị cũ!`;
@@ -1191,7 +1284,7 @@ function openCompareModal(invIdx) {
     inheritTag.innerText = "";
   }
 
-  // So sánh độ lệch chỉ số
+  // So sánh độ lệch chỉ số cốt lõi
   let diffHtml = "";
   const curAtk = curItem ? curItem.stats.atk || 0 : 0;
   const newAtk = newItem.stats.atk || 0;
@@ -1199,8 +1292,22 @@ function openCompareModal(invIdx) {
     const d = newAtk - curAtk;
     diffHtml += `<div>Lực Công: <span class="${d > 0 ? 'stat-diff-positive' : 'stat-diff-negative'}">${d > 0 ? `+${d}` : d}</span></div>`;
   }
-  document.getElementById('cmp-diff-summary').innerHTML = diffHtml || "<div>Chỉ số tương đương</div>";
 
+  const curDef = curItem ? curItem.stats.def || 0 : 0;
+  const newDef = newItem.stats.def || 0;
+  if (newDef !== curDef) {
+    const d = newDef - curDef;
+    diffHtml += `<div>Phòng Ngự: <span class="${d > 0 ? 'stat-diff-positive' : 'stat-diff-negative'}">${d > 0 ? `+${d}` : d}</span></div>`;
+  }
+
+  const curHp = curItem ? curItem.stats.hp || 0 : 0;
+  const newHp = newItem.stats.hp || 0;
+  if (newHp !== curHp) {
+    const d = newHp - curHp;
+    diffHtml += `<div>Sinh Lực: <span class="${d > 0 ? 'stat-diff-positive' : 'stat-diff-negative'}">${d > 0 ? `+${d}` : d}</span></div>`;
+  }
+
+  document.getElementById('cmp-diff-summary').innerHTML = diffHtml || "<div>Chỉ số tương đương</div>";
   document.getElementById('compare-modal').style.display = "flex";
 }
 
@@ -1215,19 +1322,19 @@ function confirmEquipWithInheritance() {
 
   const oldItem = G.equipped[newItem.slot];
 
-  // KẾ THỪA CƯỜNG HÓA
+  // KẾ THỪA CƯỜNG HÓA TỰ ĐỘNG
   if (oldItem && oldItem.enhance > 0) {
     const inheritedLevel = Math.max(newItem.enhance, oldItem.enhance);
     newItem.enhance = inheritedLevel;
-    oldItem.enhance = 0; // Trả đồ cũ về +0
-    addLog(`<b style="color:#22c55e;">[KẾ THỪA] ${newItem.name} đã thừa hưởng thành công Cường Hóa +${inheritedLevel}!</b>`);
+    oldItem.enhance = 0;
+    addLog(`<b style="color:#22c55e;">[KẾ THỪA] ${newItem.name} kế thừa thành công Cường Hóa +${inheritedLevel}!</b>`);
   }
 
   G.equipped[newItem.slot] = newItem;
   G.inventory.splice(inspectingInvIndex, 1);
   if (oldItem) G.inventory.push(oldItem);
 
-  addLog(`<b style="color:#38bdf8;">Đã mặc trang bị [${newItem.name}]!</b>`);
+  addLog(`<b style="color:#38bdf8;">Đã mặc [${newItem.name}] vào ô ${newItem.slot.toUpperCase()}!</b>`);
   closeCompareModal();
   renderInventoryUI();
   saveGame();
@@ -1284,117 +1391,11 @@ function sortInventory() {
   const tierWeight = { BACH_KIM: 4, HOANG_KIM: 3, HIEM: 2, THUONG: 1 };
   G.inventory.sort((a, b) => (tierWeight[b.quality] || 0) - (tierWeight[a.quality] || 0));
   renderInventoryUI();
-  addLog("Đã sắp xếp gọn gàng túi hành trang.");
+  addLog("Đã sắp xếp gọn gàng hành trang.");
 }
 
 /* ==========================================================================
-   6. HỆ THỐNG BẢN ĐỒ & MỐC THƯỞNG DÃ TẨU
-   ========================================================================== */
-function getMapConfig(mapId) {
-  for (const cat of ["train", "event", "boss"]) {
-    const f = MAPS_DATABASE[cat].find(m => m.id === mapId);
-    if (f) return f;
-  }
-  return MAPS_DATABASE.train[0];
-}
-
-function switchMapCat(cat) {
-  G.currentMapCat = cat;
-  ["train", "event", "boss"].forEach(c => {
-    document.getElementById(`btn-mapcat-${c}`).style.background = (c === cat) ? "#b45309" : "#1f1f1f";
-  });
-  renderMapList();
-}
-
-function renderMapList() {
-  const list = document.getElementById('map-list-container');
-  list.innerHTML = "";
-  const maps = MAPS_DATABASE[G.currentMapCat] || MAPS_DATABASE.train;
-
-  maps.forEach(m => {
-    const isAct = (G.currentMapId === m.id);
-    const box = document.createElement('div');
-    box.className = `map-choice-box ${isAct ? 'active' : ''}`;
-    box.innerHTML = `
-      <div>
-        <div style="font-weight:bold; color:${isAct ? '#ffd700' : '#fff'}; font-size:11px;">${m.name}</div>
-        <div style="font-size:9.5px; color:#888;">Yêu cầu: Cấp ${m.reqLvl} | Hệ: [${m.elem || 'Đa Hệ'}]</div>
-      </div>
-      <button class="btn-action" style="font-size:10px; font-weight:bold;" onclick="selectMap('${m.id}')">
-        ${isAct ? "ĐANG ĐỨNG" : "CHUYỂN ĐẾN"}
-      </button>
-    `;
-    list.appendChild(box);
-  });
-
-  renderDãTẩuMilestones();
-}
-
-function selectMap(mapId) {
-  const map = getMapConfig(mapId);
-  if (G.level < map.reqLvl) {
-    alert(`Cần đạt Cấp ${map.reqLvl} mới có thể tiến vào bản đồ này!`);
-    return;
-  }
-  G.currentMapId = mapId;
-  document.getElementById('ui-subbar-map').innerText = map.name;
-  document.getElementById('ui-stage-name').innerText = `Bản Đồ: ${map.name}`;
-  document.getElementById('ui-afk-exp').innerText = `${map.expRate || 100} EXP/phút`;
-  document.getElementById('ui-afk-silver').innerText = `${map.silverRate || 60} Bạc/phút`;
-
-  addLog(`<b style="color:#38bdf8;">Đã dịch chuyển đến: [${map.name}]!</b>`);
-  renderMapList();
-  spawnEnemy();
-  drawBackground();
-}
-
-function renderDãTẩuMilestones() {
-  document.getElementById('ui-datau-streak').innerText = G.datauStreak;
-  const container = document.getElementById('datau-milestones-container');
-  container.innerHTML = "";
-
-  DATAU_MILESTONES.forEach(ms => {
-    const isClaimed = G.claimedMilestones.includes(ms.target);
-    const canClaim = G.datauStreak >= ms.target && !isClaimed;
-
-    const row = document.createElement('div');
-    row.className = "milestone-row";
-    row.innerHTML = `
-      <div>
-        <b>Mốc ${ms.target} Nhiệm Vụ:</b> <span style="color:#aaa;">${ms.desc}</span>
-      </div>
-      <button class="btn-action" style="font-size:9.5px; padding:2px 8px; ${canClaim ? 'background:#b45309; color:#fff; font-weight:bold;' : ''}" 
-        ${isClaimed ? 'disabled' : ''} onclick="claimMilestone(${ms.target})">
-        ${isClaimed ? "ĐÃ NHẬN" : (canClaim ? "NHẬN" : `${G.datauStreak}/${ms.target}`)}
-      </button>
-    `;
-    container.appendChild(row);
-  });
-}
-
-function claimMilestone(target) {
-  const ms = DATAU_MILESTONES.find(m => m.target === target);
-  if (!ms || G.claimedMilestones.includes(target) || G.datauStreak < target) return;
-
-  G.claimedMilestones.push(target);
-  if (ms.reward.silver) G.silver += ms.reward.silver;
-  if (ms.reward.crystals) G.crystals += ms.reward.crystals;
-  if (ms.reward.skillPts) G.skillPoints += ms.reward.skillPts;
-  if (ms.reward.itemTier && G.inventory.length < 18) {
-    const dropped = createRandomItem("weapon", ms.reward.itemTier, G.level);
-    G.inventory.push(dropped);
-    addLog(`<b style="color:#ffd700;">★ MỐC DÃ TẨU THƯỞNG: [${dropped.name}] (${dropped.quality})!</b>`);
-  }
-
-  addLog(`<b style="color:#22c55e;">[DÃ TẨU] Hoàn thành Mốc ${target}: Nhận thưởng lớn!</b>`);
-  updateTopBar();
-  renderDãTẩuMilestones();
-  renderInventoryUI();
-  saveGame();
-}
-
-/* ==========================================================================
-   7. LÒ RÈN CƯỜNG HÓA (+1 ĐẾN +16)
+   6. CƯỜNG HÓA & LÒ RÈN
    ========================================================================== */
 function updateForgeSelector() {
   const container = document.getElementById('ui-forge-selector-list');
@@ -1459,6 +1460,112 @@ function executeEnhance() {
 }
 
 /* ==========================================================================
+   7. BẢN ĐỒ & KỸ NĂNG
+   ========================================================================== */
+function getMapConfig(mapId) {
+  for (const cat of ["train", "boss"]) {
+    const f = MAPS_DATABASE[cat].find(m => m.id === mapId);
+    if (f) return f;
+  }
+  return MAPS_DATABASE.train[0];
+}
+
+function switchMapCat(cat) {
+  G.currentMapCat = cat;
+  ["train", "boss"].forEach(c => {
+    const btn = document.getElementById(`btn-mapcat-${c}`);
+    if (btn) btn.style.background = (c === cat) ? "#b45309" : "#1f1f1f";
+  });
+  renderMapList();
+}
+
+function renderMapList() {
+  const list = document.getElementById('map-list-container');
+  list.innerHTML = "";
+  const maps = MAPS_DATABASE[G.currentMapCat] || MAPS_DATABASE.train;
+
+  maps.forEach(m => {
+    const isAct = (G.currentMapId === m.id);
+    const box = document.createElement('div');
+    box.className = `map-choice-box ${isAct ? 'active' : ''}`;
+    box.innerHTML = `
+      <div>
+        <div style="font-weight:bold; color:${isAct ? '#ffd700' : '#fff'}; font-size:11px;">${m.name}</div>
+        <div style="font-size:9.5px; color:#888;">Yêu cầu: Cấp ${m.reqLvl} | Hệ: [${m.elem || 'Đa Hệ'}]</div>
+      </div>
+      <button class="btn-action" style="font-size:10px; font-weight:bold;" onclick="selectMap('${m.id}')">
+        ${isAct ? "ĐANG ĐỨNG" : "CHUYỂN ĐẾN"}
+      </button>
+    `;
+    list.appendChild(box);
+  });
+}
+
+function selectMap(mapId) {
+  const map = getMapConfig(mapId);
+  if (G.level < map.reqLvl) {
+    alert(`Cần đạt Cấp ${map.reqLvl} mới có thể tiến vào bản đồ này!`);
+    return;
+  }
+  G.currentMapId = mapId;
+  document.getElementById('ui-subbar-map').innerText = map.name;
+  document.getElementById('ui-stage-name').innerText = `Bản Đồ: ${map.name}`;
+  document.getElementById('ui-afk-exp').innerText = `${map.expRate || 100} EXP/phút`;
+  document.getElementById('ui-afk-silver').innerText = `${map.silverRate || 60} Bạc/phút`;
+
+  addLog(`<b style="color:#38bdf8;">Đã chuyển đến: [${map.name}]!</b>`);
+  renderMapList();
+  spawnEnemy();
+}
+
+function renderSkillTree() {
+  const container = document.getElementById('skill-tree-list');
+  container.innerHTML = "";
+  document.getElementById('ui-skill-pts').innerText = G.skillPoints;
+
+  const skills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
+  skills.forEach(sk => {
+    const curLvl = G.skillAllocations[sk.id] || 0;
+    const row = document.createElement('div');
+    row.style.background = "#121212";
+    row.style.border = "1px solid #333";
+    row.style.padding = "6px";
+    row.style.marginBottom = "5px";
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.justifyContent = "space-between";
+
+    row.innerHTML = `
+      <div style="flex:1;">
+        <div style="font-weight:bold; color:#ffd700; font-size:11px;">
+          ${sk.name} <span style="color:#38bdf8;">(Cấp ${curLvl}/${sk.maxLvl})</span>
+        </div>
+        <div style="font-size:9.5px; color:#888;">${sk.desc}</div>
+      </div>
+      <button class="btn-action" style="padding:4px 8px; font-weight:bold;" onclick="upgradeSkill('${sk.id}', ${sk.maxLvl})">+ Nâng</button>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function upgradeSkill(skillId, maxLvl) {
+  if (G.skillPoints <= 0) {
+    alert("Không đủ Điểm Kỹ Năng! Hãy tăng cấp nhân vật.");
+    return;
+  }
+  const curLvl = G.skillAllocations[skillId] || 0;
+  if (curLvl >= maxLvl) {
+    alert("Kỹ năng đã đạt cấp tối đa!");
+    return;
+  }
+  G.skillPoints--;
+  G.skillAllocations[skillId] = curLvl + 1;
+  addLog(`<b style="color:#38bdf8;">Nâng cấp kỹ năng thành công! Cấp hiện tại: ${G.skillAllocations[skillId]}</b>`);
+  renderSkillTree();
+  updateF3UI();
+}
+
+/* ==========================================================================
    8. ĐỒ HỌA PIXIJS CANVAS
    ========================================================================== */
 const canvasBox = document.getElementById('canvas-container');
@@ -1481,7 +1588,6 @@ function drawBackground() {
   const g = new PIXI.Graphics();
   const w = app.screen.width, h = app.screen.height;
 
-  // Nền trời & núi
   g.beginFill(0x0e1726).drawRect(0, 0, w, h).endFill();
   g.beginFill(0x1e293b);
   g.moveTo(0, 85).lineTo(60, 45).lineTo(130, 80).lineTo(210, 30).lineTo(300, 75).lineTo(390, 40).lineTo(w, 80).lineTo(w, 120).lineTo(0, 120).endFill();
@@ -1528,9 +1634,7 @@ function drawPlayerModel() {
   pBody.clear(); pWeapon.clear();
   const sect = G.activeSect;
 
-  // Đầu
   pBody.beginFill(0xfde68a).drawCircle(0, -36, 8).endFill();
-  // Thân áo
   if (sect === "thieu_lam" && G.hasJoinedSect) {
     pBody.beginFill(0x78350f).drawPolygon([-9, -26, 9, -26, 11, 2, -11, 2]).endFill();
     pWeapon.lineStyle(2.5, 0xffd700).moveTo(8, -42).lineTo(8, 4);
@@ -1581,14 +1685,25 @@ app.ticker.add((delta) => {
   });
 });
 
-function showDamageNumber(dmg, isUlt) {
-  const txt = new PIXI.Text(`-${dmg}`, {
+function showDamageNumber(dmg, isCrit, isLifeSteal = false) {
+  let color = isCrit ? 0xffcc00 : 0xffffff;
+  let textStr = `-${dmg}`;
+
+  if (isLifeSteal) {
+    color = 0x22c55e;
+    textStr = `+${dmg} HP`;
+  }
+
+  const txt = new PIXI.Text(textStr, {
     fontFamily: "Tahoma",
-    fontSize: isUlt ? 15 : 11,
-    fill: isUlt ? 0xffcc00 : 0xffffff,
+    fontSize: isCrit ? 15 : 11,
+    fontWeight: isCrit ? "bold" : "normal",
+    fill: color,
     stroke: 0x0, strokeThickness: 2
   });
-  txt.x = eContainer.x - 20; txt.y = eContainer.y - 40;
+
+  txt.x = isLifeSteal ? pContainer.x - 10 : eContainer.x - 20;
+  txt.y = isLifeSteal ? pContainer.y - 45 : eContainer.y - 40;
   uiLayer.addChild(txt);
 
   let step = 0;
@@ -1601,12 +1716,21 @@ function showDamageNumber(dmg, isUlt) {
 }
 
 /* ==========================================================================
-   9. VÒNG LẶP CHIẾN ĐẤU & THĂNG CẤP
+   9. VÒNG LẶP GIAO TRANH THỰC CHIẾN TÍCH HỢP TOÀN BỘ THUỘC TÍNH
    ========================================================================== */
 function combatTick() {
   const stats = calculateHeroStats();
+
+  // 1. Kiểm tra sát thương cơ bản Min - Max
   let baseDmg = Math.floor(stats.atkMin + Math.random() * (stats.atkMax - stats.atkMin));
 
+  // 2. Kiểm tra Bạo Kích (Chí Mạng)
+  const isCrit = Math.random() < stats.critRate;
+  if (isCrit) {
+    baseDmg = Math.floor(baseDmg * (stats.critDmgPct / 100));
+  }
+
+  // 3. Tích Lũy Nộ Khí & Xuất Tuyệt Kỹ
   let isUlt = false;
   if (G.rage >= 100) {
     isUlt = true;
@@ -1618,16 +1742,23 @@ function combatTick() {
   }
   updateRageBar();
 
-  // Ngũ hành
+  // 4. Ngũ Hành Tương Khắc
   const curSect = SECT_CONFIG[G.activeSect];
-  if (COUNTERS[curSect.elem] === enemy.elem) baseDmg = Math.floor(baseDmg * 1.3);
-  else if (COUNTERS[enemy.elem] === curSect.elem) baseDmg = Math.floor(baseDmg * 0.8);
+  if (COUNTERS[curSect.elem] === enemy.elem) baseDmg = Math.floor(baseDmg * 1.35);
+  else if (COUNTERS[enemy.elem] === curSect.elem) baseDmg = Math.floor(baseDmg * 0.80);
 
+  // 5. Trừ máu quái
   enemy.hp = Math.max(0, enemy.hp - baseDmg);
-  showDamageNumber(baseDmg, isUlt);
+  showDamageNumber(baseDmg, isCrit);
   updateHpBar();
 
-  // Động tác lướt chém
+  // 6. Hiệu ứng Hút Sinh Lực (Life Steal)
+  if (stats.lifeStealPct > 0) {
+    const healAmount = Math.max(1, Math.floor(baseDmg * (stats.lifeStealPct / 100)));
+    showDamageNumber(healAmount, false, true);
+  }
+
+  // Lướt chém
   pContainer.x = 115;
   setTimeout(() => { pContainer.x = 85; }, 100);
 
@@ -1646,28 +1777,37 @@ function handleEnemyDefeat() {
 
   if (enemy.isBoss) {
     G.crystals += 2;
-    addLog(`<b style="color:#22c55e;">HẠ GỤC BOSS! Rơi 2 Huyền Tinh & Báu Vật.</b>`);
+    addLog(`<b style="color:#22c55e;">HẠ GỤC BOSS! Rơi 2 Huyền Tinh & Trang Bị Hoàng Kim.</b>`);
+
     if (G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
-      const dropped = createRandomItem(slots[Math.floor(Math.random()*slots.length)], "HOANG_KIM", G.level);
+      const rndSlot = slots[Math.floor(Math.random() * slots.length)];
+      const dropped = createRandomItem(rndSlot, "HOANG_KIM", G.level);
       G.inventory.push(dropped);
-      addLog(`<b style="color:#ffd700;">★ RƠI ĐỒ HOÀNG KIM: [${dropped.name}] [${dropped.element}]!</b>`);
+      addLog(`<b style="color:#ffd700;">★ RƠI TRANG BỊ: [${dropped.name}] (${dropped.quality})!</b>`);
       renderInventoryUI();
     }
-    document.getElementById('boss-btn').classList.remove('ready');
+
+    const bossBtn = document.getElementById('boss-btn');
+    if (bossBtn) bossBtn.style.display = "none";
     G.kills = 0;
     triggerQuestProgress("KILL_BOSS", 1);
   } else {
     G.kills++;
     if (Math.random() < 0.25) G.crystals += 1;
+
+    // Tỷ lệ rơi trang bị dã ngoại
     if (Math.random() < 0.15 && G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
-      const dropped = createRandomItem(slots[Math.floor(Math.random()*slots.length)], "HIEM", G.level);
+      const rndSlot = slots[Math.floor(Math.random() * slots.length)];
+      const dropped = createRandomItem(rndSlot, "HIEM", G.level);
       G.inventory.push(dropped);
       renderInventoryUI();
     }
+
     if (G.kills >= 5) {
-      document.getElementById('boss-btn').classList.add('ready');
+      const bossBtn = document.getElementById('boss-btn');
+      if (bossBtn) bossBtn.style.display = "block";
     }
     triggerQuestProgress("KILL_MOB", 1);
   }
@@ -1701,7 +1841,7 @@ function challengeBoss() {
     isBoss: true
   };
   drawEnemyModel();
-  addLog("<b style='color:#ef4444;'>BOSS XUẤT HIỆN! Hãy đổi hệ ngũ hành để khắc chế.</b>");
+  addLog("<b style='color:#ef4444;'>BOSS XUẤT HIỆN! Hãy đổi hệ để khắc chế.</b>");
 }
 
 setInterval(combatTick, 900);
@@ -1776,7 +1916,7 @@ function confirmCeremony() {
   document.querySelectorAll('.sect-wheel .sect-chip').forEach(c => c.classList.remove('active'));
   document.getElementById(`chip-${pendingCeremonySect}`).classList.add('active');
 
-  addLog(`<b style="color:#ffd700;">★ ĐẠI LỄ BÁI SƯ HOÀN TẤT: Gia nhập [${SECT_CONFIG[pendingCeremonySect].name}]!</b>`);
+  addLog(`<b style="color:#ffd700;">★ ĐẠI LỄ HOÀN TẤT: Bái nhập môn phái [${SECT_CONFIG[pendingCeremonySect].name}]!</b>`);
   drawPlayerModel();
   renderSkillTree();
   updateF3UI();
@@ -1795,7 +1935,7 @@ function switchSect(sectKey) {
   updateF3UI();
 }
 
-// CHUỖI NHIỆM VỤ DÃ TẨU & TÂN THỦ
+// NHIỆM VỤ DÃ TẨU
 function getCurQuest() {
   return {
     id: 1,
@@ -1833,7 +1973,6 @@ function handleQuestButton() {
     addLog(`<b style="color:#22c55e;">[DÃ TẨU HOÀN THÀNH]: Nhận ${q.rewardText}!</b>`);
     updateTopBar();
     updateQuestUI();
-    renderDãTẩuMilestones();
     saveGame();
   } else {
     navigateTab('tab-afk');
@@ -1859,6 +1998,7 @@ function navigateTab(tabId) {
 
   if (tabId === 'tab-maps') renderMapList();
   if (tabId === 'tab-skills') renderSkillTree();
+  if (tabId === 'tab-stats') updateF3UI();
 }
 
 /* ==========================================================================
