@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Võ Lâm AFK H5 - Hệ Thống Trang Bị 10 Cấp VLTK 1</title>
+  <title>Võ Lâm AFK H5 - Chỉ Số Trang Bị Random VLTK</title>
   <!-- Pixi.js Canvas Engine v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
   <style>
@@ -333,7 +333,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 56px;
+      min-height: 58px;
       cursor: pointer;
       position: relative;
     }
@@ -513,7 +513,7 @@
         Thu hoạch dự kiến: <b id="ui-afk-exp" style="color:#38bdf8;">80 EXP/phút</b> | <b id="ui-afk-silver" style="color:#ffd700;">45 Bạc/phút</b>
       </div>
       <div style="font-size: 10px; color: var(--color-text-secondary); margin-bottom: 6px;">
-        Quái dã ngoại rơi Bạc, EXP, Huyền Tinh và Trang Bị chuẩn cấp bậc VLTK 1 (Cấp 1 đến Cấp 10).
+        Quái dã ngoại rơi Bạc, EXP, Huyền Tinh và Trang Bị với chỉ số random độc nhất (Cấp 1 đến 10).
       </div>
       <button class="btn-action" style="width:100%; background:#450a0a; border-color:#ef4444; color:#ffcccc; font-weight:bold; display:none;" id="boss-btn" onclick="challengeBoss()">KHIÊU CHIẾN BOSS BẢN ĐỒ</button>
     </div>
@@ -761,6 +761,10 @@ function safeNum(val, fallback = 0) {
   return isNaN(n) ? fallback : n;
 }
 
+function randInt(min, max) {
+  return Math.floor(min + Math.random() * (max - min + 1));
+}
+
 const ELEM_COLORS = {
   VO_HE: 0xaaaaaa,
   KIM: 0xffd700,
@@ -784,7 +788,7 @@ const QUALITY_UPGRADE_CONFIG = {
     silverCost: 1500,
     crystalCost: 3,
     statMult: 1.25,
-    desc: "Tăng +25% chỉ số cơ bản, mở khóa Dòng Ẩn Ngũ Hành!"
+    desc: "Tăng +25% chỉ số cơ bản, thêm 1 Dòng Phụ ngẫu nhiên & mở khóa Dòng Ẩn!"
   },
   HIEM: {
     next: "HOANG_KIM",
@@ -792,7 +796,7 @@ const QUALITY_UPGRADE_CONFIG = {
     silverCost: 6000,
     crystalCost: 8,
     statMult: 1.6,
-    desc: "Tăng +60% chỉ số cơ bản, chỉ số Dòng Ẩn tăng +50%!"
+    desc: "Tăng +60% chỉ số cơ bản, thêm 1 Dòng Phụ ngẫu nhiên & tăng +50% uy lực Dòng Ẩn!"
   },
   HOANG_KIM: {
     next: "BACH_KIM",
@@ -800,7 +804,7 @@ const QUALITY_UPGRADE_CONFIG = {
     silverCost: 25000,
     crystalCost: 20,
     statMult: 1.5,
-    desc: "Tăng +50% chỉ số, ban tặng Dòng Thuộc Tính Thần Thoại Bạch Kim!"
+    desc: "Tăng +50% chỉ số, thêm 1 Dòng Phụ ngẫu nhiên & ban tặng Dòng Thần Thoại Bạch Kim!"
   }
 };
 
@@ -816,7 +820,6 @@ const SECT_CONFIG = {
   vo_dang:      { name: "Võ Đang",      elem: "THO",   color: ELEM_COLORS.THO,   ultName: "Vô Ngã Vô Kiếm",    ultMult: 3.0 }
 };
 
-// CÂY KỸ NĂNG THEO MÔN PHÁI
 const SECT_SKILLS_DB = {
   thieu_lam: [
     { id: "tl_1", name: "La Hán Trận", type: "passive", desc: "+15% Giáp & Phản 10% sát thương", maxLvl: 20 },
@@ -849,7 +852,6 @@ const SECT_SKILLS_DB = {
   ]
 };
 
-// CẤU HÌNH BẢN ĐỒ
 const MAPS_DATABASE = {
   train: [
     { id: "map_balang", name: "Ba Lăng Huyện", reqLvl: 1, minDropTier: 1, maxDropTier: 2, elem: "MOC", expRate: 60, silverRate: 35, bossName: "Đầu Mục Ba Lăng" },
@@ -865,9 +867,6 @@ const MAPS_DATABASE = {
   ]
 };
 
-/**
- * BẢNG TÊN TRANG BỊ CHUẨN NGUYÊN BẢN VÕ LÂM TRUYỀN KỲ 1 PC (CẤP 1 ĐẾN 10)
- */
 const VLTK_ITEM_TIERS_DB = {
   1: {
     reqLvl: 1,
@@ -1007,6 +1006,14 @@ let currentForgeMode = "enhance";
 let inspectingInvIndex = null;
 let pendingCeremonySect = "thieu_lam";
 
+function sanitizeItem(item) {
+  if (!item || typeof item !== 'object') return null;
+  if (!item.stats) item.stats = {};
+  if (!Array.isArray(item.extraAffixes)) item.extraAffixes = [];
+  if (!item.purity) item.purity = 95;
+  return item;
+}
+
 function sanitizeState(loaded) {
   const def = getDefaultState();
   if (!loaded || typeof loaded !== "object") return def;
@@ -1017,7 +1024,13 @@ function sanitizeState(loaded) {
     if (!res.sectProfiles[k]) res.sectProfiles[k] = { str: 10, dex: 10, vit: 10, int: 10, free: 5 };
   }
   if (!res.equipped) res.equipped = def.equipped;
+  Object.keys(res.equipped).forEach(slot => {
+    res.equipped[slot] = sanitizeItem(res.equipped[slot]);
+  });
+
   if (!Array.isArray(res.inventory)) res.inventory = [];
+  res.inventory = res.inventory.map(it => sanitizeItem(it)).filter(Boolean);
+
   if (!res.skillAllocations) res.skillAllocations = {};
 
   res.level = Math.max(1, safeNum(res.level, 1));
@@ -1074,7 +1087,7 @@ function closeOfflineModal() {
 }
 
 /* ==========================================================================
-   3. HÀM TẠO TRANG BỊ THEO 10 CẤP BẬC VÀ BẢN ĐỒ VLTK 1 PC
+   3. HỆ THỐNG SINH TRANG BỊ VỚI CHỈ SỐ RANDOM VÀ THUỘC TÍNH PHỤ (AFFIXES)
    ========================================================================== */
 function getTierByLevel(lvl) {
   if (lvl < 10) return 1;
@@ -1089,6 +1102,47 @@ function getTierByLevel(lvl) {
   return 10;
 }
 
+/**
+ * Sinh ngẫu nhiên các dòng thuộc tính phụ (Random Affixes)
+ */
+function generateExtraAffixes(slot, quality, tier) {
+  const countConfig = {
+    THUONG: Math.random() < 0.4 ? 1 : 0,
+    HIEM: randInt(1, 2),
+    HOANG_KIM: randInt(2, 3),
+    BACH_KIM: randInt(3, 4)
+  };
+  const count = countConfig[quality] || 0;
+  if (count <= 0) return [];
+
+  const possibleKeys = [
+    { key: "str", name: "Sức Mạnh", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+    { key: "dex", name: "Thân Pháp", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+    { key: "vit", name: "Sinh Khí", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+    { key: "int", name: "Nội Công", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+    { key: "hp", name: "Sinh Lực Tối Đa", gen: () => randInt(30 + tier * 20, 60 + tier * 40) },
+    { key: "mp", name: "Nội Lực Tối Đa", gen: () => randInt(20 + tier * 15, 40 + tier * 30) },
+    { key: "allResist", name: "Kháng Tất Cả", isPct: true, gen: () => randInt(2 + Math.floor(tier * 0.6), 5 + Math.floor(tier * 1.2)) },
+    { key: "critRate", name: "Tỷ Lệ Chí Mạng", isPct: true, gen: () => randInt(2, 4 + Math.floor(tier * 0.4)) },
+    { key: "critDmg", name: "Sát Thương Bạo Kích", isPct: true, gen: () => randInt(8 + tier * 2, 16 + tier * 3) },
+    { key: "eva", name: "Thân Pháp Né Tránh", isPct: true, gen: () => randInt(3, 5 + Math.floor(tier * 0.5)) },
+    { key: "lifeSteal", name: "Hút Sinh Lực", isPct: true, gen: () => randInt(2, 3 + Math.floor(tier * 0.3)) },
+    { key: "recovery", name: "Thời Gian Phục Hồi", isPct: true, gen: () => randInt(5 + tier, 10 + tier * 2) }
+  ];
+
+  const shuffled = possibleKeys.sort(() => Math.random() - 0.5);
+  const picked = shuffled.slice(0, count);
+  return picked.map(p => ({
+    key: p.key,
+    name: p.name,
+    val: p.gen(),
+    isPct: !!p.isPct
+  }));
+}
+
+/**
+ * Sinh trang bị chuẩn VLTK với các chỉ số dao động ngẫu nhiên (Random Rolls)
+ */
 function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
   const elem = elems[Math.floor(Math.random() * elems.length)];
@@ -1098,10 +1152,21 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const namePool = tierConfig[slot] || ["Bảo Vật"];
   const name = namePool[Math.floor(Math.random() * namePool.length)];
 
+  // Độ hoàn hảo ngẫu nhiên (Purity Percentage)
+  let purityMin = 75, purityMax = 100;
+  if (quality === "HIEM") { purityMin = 85; purityMax = 110; }
+  else if (quality === "HOANG_KIM") { purityMin = 100; purityMax = 120; }
+  else if (quality === "BACH_KIM") { purityMin = 115; purityMax = 130; }
+  const purity = randInt(purityMin, purityMax);
+  const purityMult = purity / 100;
+
+  // Hệ số phẩm chất
   let mult = 1.0;
   if (quality === "THUONG") mult = 0.85;
-  else if (quality === "HOANG_KIM") mult = 1.7;
-  else if (quality === "BACH_KIM") mult = 2.5;
+  else if (quality === "HOANG_KIM") mult = 1.65;
+  else if (quality === "BACH_KIM") mult = 2.4;
+
+  const totalMult = mult * purityMult;
 
   const stats = {
     atk: 0, def: 0, hp: 0, mp: 0, critRate: 0, critDmg: 0,
@@ -1110,51 +1175,66 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
 
   const hiddenStats = { statKey: "", val: 0, desc: "" };
 
-  // Tính chỉ số theo Cấp bậc (Tier) và Phẩm chất
+  // Random chỉ số cơ bản trong khoảng (Min - Max Range)
   if (slot === "weapon") {
-    stats.atk = Math.floor((25 + tier * 18) * mult);
-    stats.critRate = Math.floor((3 + tier * 0.8) * (mult > 1 ? 1.2 : 1));
-    stats.pierce = Math.floor((2 + tier * 1.5) * mult);
+    stats.atk = randInt(Math.floor((22 + tier * 15) * totalMult), Math.floor((32 + tier * 21) * totalMult));
+    stats.critRate = randInt(3 + Math.floor(tier * 0.5), 5 + Math.floor(tier * 1.1));
+    stats.pierce = randInt(2 + tier, 4 + Math.floor(tier * 1.8));
+
     hiddenStats.statKey = "elementalAtk";
-    hiddenStats.val = Math.floor(30 + tier * 25);
+    hiddenStats.val = randInt(25 + tier * 20, 40 + tier * 30);
     hiddenStats.desc = `Băng Sát Ngoại Công +${hiddenStats.val}`;
-  } else if (slot === "helm") {
-    stats.def = Math.floor((12 + tier * 7) * mult);
-    stats.hp = Math.floor((50 + tier * 45) * mult);
-    stats.hpRegen = Math.floor((3 + tier * 1.5) * mult);
+  } 
+  else if (slot === "helm") {
+    stats.def = randInt(Math.floor((10 + tier * 6) * totalMult), Math.floor((15 + tier * 8.5) * totalMult));
+    stats.hp = randInt(Math.floor((45 + tier * 35) * totalMult), Math.floor((70 + tier * 55) * totalMult));
+    stats.hpRegen = randInt(Math.floor((2 + tier * 1) * totalMult), Math.floor((4 + tier * 2) * totalMult));
+
     hiddenStats.statKey = "recovery";
-    hiddenStats.val = Math.floor(10 + tier * 2.5);
+    hiddenStats.val = randInt(8 + Math.floor(tier * 2), 12 + Math.floor(tier * 3));
     hiddenStats.desc = `Thời Gian Phục Hồi -${hiddenStats.val}%`;
-  } else if (slot === "armor") {
-    stats.def = Math.floor((25 + tier * 14) * mult);
-    stats.hp = Math.floor((100 + tier * 70) * mult);
-    stats.allResist = Math.floor((4 + tier * 1.8) * mult);
+  } 
+  else if (slot === "armor") {
+    stats.def = randInt(Math.floor((20 + tier * 12) * totalMult), Math.floor((30 + tier * 17) * totalMult));
+    stats.hp = randInt(Math.floor((80 + tier * 60) * totalMult), Math.floor((130 + tier * 85) * totalMult));
+    stats.allResist = randInt(Math.floor((3 + tier * 1.4) * totalMult), Math.floor((6 + tier * 2.2) * totalMult));
+
     hiddenStats.statKey = "allResist";
-    hiddenStats.val = Math.floor(8 + tier * 2.2);
+    hiddenStats.val = randInt(6 + Math.floor(tier * 1.8), 10 + Math.floor(tier * 2.8));
     hiddenStats.desc = `Kháng Tất Cả +${hiddenStats.val}%`;
-  } else if (slot === "ring") {
-    stats.atk = Math.floor((12 + tier * 8) * mult);
-    stats.mp = Math.floor((60 + tier * 40) * mult);
-    stats.critRate = Math.floor((4 + tier * 0.9) * mult);
+  } 
+  else if (slot === "ring") {
+    stats.atk = randInt(Math.floor((10 + tier * 6) * totalMult), Math.floor((16 + tier * 10) * totalMult));
+    stats.mp = randInt(Math.floor((50 + tier * 30) * totalMult), Math.floor((80 + tier * 50) * totalMult));
+    stats.critRate = randInt(Math.floor((3 + tier * 0.7) * totalMult), Math.floor((6 + tier * 1.2) * totalMult));
+
     hiddenStats.statKey = "critDmg";
-    hiddenStats.val = Math.floor(15 + tier * 3.5);
+    hiddenStats.val = randInt(12 + Math.floor(tier * 3), 18 + Math.floor(tier * 4.5));
     hiddenStats.desc = `Sát Thương Bạo Kích +${hiddenStats.val}%`;
-  } else if (slot === "boots") {
-    stats.def = Math.floor((10 + tier * 6) * mult);
-    stats.eva = Math.floor((5 + tier * 1.2) * mult);
-    stats.hp = Math.floor((40 + tier * 35) * mult);
+  } 
+  else if (slot === "boots") {
+    stats.def = randInt(Math.floor((8 + tier * 5) * totalMult), Math.floor((13 + tier * 8) * totalMult));
+    stats.eva = randInt(Math.floor((4 + tier * 1) * totalMult), Math.floor((7 + tier * 1.6) * totalMult));
+    stats.hp = randInt(Math.floor((35 + tier * 25) * totalMult), Math.floor((55 + tier * 45) * totalMult));
+
     hiddenStats.statKey = "eva";
-    hiddenStats.val = Math.floor(8 + tier * 1.8);
+    hiddenStats.val = randInt(6 + Math.floor(tier * 1.5), 10 + Math.floor(tier * 2.4));
     hiddenStats.desc = `Thân Pháp Né Tránh +${hiddenStats.val}%`;
-  } else if (slot === "amulet") {
-    stats.hp = Math.floor((70 + tier * 55) * mult);
-    stats.mp = Math.floor((50 + tier * 30) * mult);
-    stats.allResist = Math.floor((6 + tier * 1.6) * mult);
+  } 
+  else if (slot === "amulet") {
+    stats.hp = randInt(Math.floor((60 + tier * 45) * totalMult), Math.floor((90 + tier * 70) * totalMult));
+    stats.mp = randInt(Math.floor((40 + tier * 25) * totalMult), Math.floor((65 + tier * 40) * totalMult));
+    stats.allResist = randInt(Math.floor((5 + tier * 1.3) * totalMult), Math.floor((8 + tier * 2.1) * totalMult));
+
     hiddenStats.statKey = "lifeSteal";
-    hiddenStats.val = Math.floor(4 + tier * 1.2);
+    hiddenStats.val = randInt(3 + Math.floor(tier * 1), 5 + Math.floor(tier * 1.6));
     hiddenStats.desc = `Hút Sinh Lực +${hiddenStats.val}%`;
   }
 
+  // Thuộc tính phụ ngẫu nhiên
+  const extraAffixes = generateExtraAffixes(slot, quality, tier);
+
+  // Thuộc tính thần thoại Bạch Kim
   let bachKimStat = null;
   if (quality === "BACH_KIM") {
     bachKimStat = getMythicStatBySlot(slot);
@@ -1168,8 +1248,10 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
     tier: tier,
     element: elem,
     levelReq: tierConfig.reqLvl,
+    purity: purity,
     enhance: 0,
     stats: stats,
+    extraAffixes: extraAffixes,
     hiddenStats: hiddenStats,
     bachKimStat: bachKimStat,
     isSecretActive: false
@@ -1187,7 +1269,7 @@ function getMythicStatBySlot(slot) {
 }
 
 /* ==========================================================================
-   4. TÍNH TOÁN BẢNG F3 & LỰC CHIẾN
+   4. TÍNH TOÁN BẢNG F3 & LỰC CHIẾN (ĐỒNG BỘ VỚI DÒNG PHỤ RANDOM)
    ========================================================================== */
 function calculateHeroStats() {
   const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10 };
@@ -1206,6 +1288,8 @@ function calculateHeroStats() {
   let recovery = 0;
   let pierce = 0;
   let hpRegen = 4 + prof.vit * 0.3;
+
+  let extraStr = 0, extraDex = 0, extraVit = 0, extraInt = 0;
 
   Object.values(G.equipped).forEach(item => {
     if (!item) return;
@@ -1229,6 +1313,25 @@ function calculateHeroStats() {
       if (item.stats.hpRegen) hpRegen += item.stats.hpRegen * enhanceMult;
     }
 
+    // Cộng dòng phụ ngẫu nhiên
+    if (Array.isArray(item.extraAffixes)) {
+      item.extraAffixes.forEach(aff => {
+        if (aff.key === "str") extraStr += aff.val;
+        else if (aff.key === "dex") extraDex += aff.val;
+        else if (aff.key === "vit") extraVit += aff.val;
+        else if (aff.key === "int") extraInt += aff.val;
+        else if (aff.key === "hp") maxHp += aff.val;
+        else if (aff.key === "mp") maxMp += aff.val;
+        else if (aff.key === "allResist") allResist += aff.val;
+        else if (aff.key === "critRate") critRate += (aff.val / 100);
+        else if (aff.key === "critDmg") critDmg += (aff.val / 100);
+        else if (aff.key === "eva") evasion += (aff.val / 100);
+        else if (aff.key === "lifeSteal") lifeSteal += (aff.val / 100);
+        else if (aff.key === "recovery") recovery += aff.val;
+      });
+    }
+
+    // Cộng dòng ẩn khi được kích hoạt tương sinh
     if (item.isSecretActive && item.hiddenStats) {
       const h = item.hiddenStats;
       if (h.statKey === "allResist") allResist += h.val;
@@ -1242,6 +1345,7 @@ function calculateHeroStats() {
       }
     }
 
+    // Cộng dòng Bạch Kim Thần Thoại
     if (item.quality === "BACH_KIM" && item.bachKimStat) {
       const b = item.bachKimStat;
       if (b.key === "pierce") pierce += (b.val / 100);
@@ -1252,6 +1356,16 @@ function calculateHeroStats() {
       else if (b.key === "recovery") recovery += b.val;
     }
   });
+
+  // Tác dụng của Tiềm Năng bổ sung từ Trang Bị
+  baseAtkMin += extraStr * 1.8;
+  baseAtkMax += extraStr * 2.6;
+  baseDef += extraStr * 1.2;
+  critRate += extraDex * 0.0012;
+  evasion += extraDex * 0.001;
+  maxHp += extraVit * 18;
+  hpRegen += extraVit * 0.3;
+  maxMp += extraInt * 10;
 
   const drRate = baseDef / (baseDef + 120 + lvl * 10);
   const bp = Math.floor(
@@ -1371,7 +1485,7 @@ function renderInventoryUI() {
       cell.innerHTML = `
         <div style="font-weight:bold; color:${qInfo.color}; font-size:9.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
         <div style="font-size:8.5px; color:#888;">[${item.element}] • ${item.slot.toUpperCase()} • <b>Cấp ${item.tier || 1}</b></div>
-        <div style="font-size:8.5px; color:${qInfo.color}; font-weight:bold;">[${qInfo.name}]</div>
+        <div style="font-size:8.5px; color:${qInfo.color}; font-weight:bold;">[${qInfo.name}] • <span style="color:#22c55e;">${item.purity || 100}%</span></div>
         <div style="font-size:9px; color:#ffd700;">${mainStatText}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1px;">
           <span style="font-size:8.5px; color:#22c55e;">+${item.enhance}</span>
@@ -1412,9 +1526,11 @@ function getItemFullStatsHtml(item) {
 
   let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Cấp bậc: <b style="color:#38bdf8;">Cấp ${item.tier || 1}</b></div>`;
   html += `<div style="color:#aaa;">Ngũ hành: <b style="color:#ffd700;">${item.element}</b> | Phẩm: <b style="color:${qInfo.color};">${qInfo.name}</b></div>`;
+  html += `<div style="color:#888;">Độ hoàn hảo: <b style="color:#22c55e;">${item.purity || 100}%</b> | Cường hóa: <b style="color:#ffd700;">+${item.enhance}</b></div>`;
   html += `<div style="color:${G.level >= item.levelReq ? '#22c55e' : '#ef4444'};">Yêu cầu Đẳng cấp: <b>Cấp ${item.levelReq}</b> ${G.level < item.levelReq ? '(Chưa đủ)' : ''}</div>`;
 
   html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
+  html += `<div style="color:#888; font-size:9px; font-weight:bold;">[THUỘC TÍNH CƠ BẢN]</div>`;
   if (item.stats.atk) html += `• Lực Công Kích: +${Math.floor(item.stats.atk * enhanceMult)}<br>`;
   if (item.stats.def) html += `• Phòng Ngự Giáp: +${Math.floor(item.stats.def * enhanceMult)}<br>`;
   if (item.stats.hp) html += `• Sinh Lực Tối Đa: +${Math.floor(item.stats.hp * enhanceMult)}<br>`;
@@ -1429,18 +1545,32 @@ function getItemFullStatsHtml(item) {
   if (item.stats.hpRegen) html += `• Hồi Sinh Lực: +${Math.floor(item.stats.hpRegen * enhanceMult)} HP/s<br>`;
   html += `</div>`;
 
+  // Hiển thị Dòng Phụ Ngẫu Nhiên
+  if (Array.isArray(item.extraAffixes) && item.extraAffixes.length > 0) {
+    html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
+    html += `<div style="color:#38bdf8; font-size:9px; font-weight:bold;">[THUỘC TÍNH PHỤ RANDOM]</div>`;
+    item.extraAffixes.forEach(aff => {
+      html += `<span style="color:#86efac;">• ${aff.name}: +${aff.val}${aff.isPct ? '%' : ''}</span><br>`;
+    });
+    html += `</div>`;
+  }
+
+  // Hiển thị Dòng Ẩn Ngũ Hành
   if (item.hiddenStats) {
     const isAct = item.isSecretActive;
-    html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">
-      <span style="color:${isAct ? '#ffd700' : '#666'}; font-weight:bold;">
-        • [Ẩn] ${item.hiddenStats.desc} ${isAct ? '✓' : '✗'}
+    html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
+    html += `<div style="color:#ffd700; font-size:9px; font-weight:bold;">[THUỘC TÍNH ẨN NGŨ HÀNH]</div>`;
+    html += `<span style="color:${isAct ? '#ffd700' : '#666'}; font-weight:bold;">
+        • ${item.hiddenStats.desc} ${isAct ? '✓' : '✗'}
       </span>
     </div>`;
   }
 
+  // Hiển thị Dòng Thần Thoại Bạch Kim
   if (item.quality === "BACH_KIM" && item.bachKimStat) {
-    html += `<div style="border-top:1px solid #ec4899; margin-top:3px; padding-top:2px;">
-      <span style="color:#ec4899; font-weight:bold;">
+    html += `<div style="border-top:1px solid #ec4899; margin-top:3px; padding-top:2px;">`;
+    html += `<div style="color:#ec4899; font-size:9px; font-weight:bold;">[THUỘC TÍNH THẦN THOẠI BẠCH KIM]</div>`;
+    html += `<span style="color:#ec4899; font-weight:bold;">
         ★ ${item.bachKimStat.desc}
       </span>
     </div>`;
@@ -1489,6 +1619,13 @@ function openCompareModal(invIdx) {
   if (newHp !== curHp) {
     const d = newHp - curHp;
     diffHtml += `<div>Sinh Lực: <span class="${d > 0 ? 'stat-diff-positive' : 'stat-diff-negative'}">${d > 0 ? `+${d}` : d}</span></div>`;
+  }
+
+  const curPurity = curItem ? curItem.purity || 100 : 0;
+  const newPurity = newItem.purity || 100;
+  if (newPurity !== curPurity) {
+    const d = newPurity - curPurity;
+    diffHtml += `<div>Độ Hoàn Hảo: <span class="${d > 0 ? 'stat-diff-positive' : 'stat-diff-negative'}">${d > 0 ? `+${d}%` : `${d}%`}</span></div>`;
   }
 
   document.getElementById('cmp-diff-summary').innerHTML = diffHtml || "<div>Chỉ số tương đương</div>";
@@ -1581,10 +1718,12 @@ function sortInventory() {
   G.inventory.sort((a, b) => {
     const qDiff = (tierWeight[b.quality] || 0) - (tierWeight[a.quality] || 0);
     if (qDiff !== 0) return qDiff;
-    return (b.tier || 1) - (a.tier || 1);
+    const tDiff = (b.tier || 1) - (a.tier || 1);
+    if (tDiff !== 0) return tDiff;
+    return (b.purity || 0) - (a.purity || 0);
   });
   renderInventoryUI();
-  addLog("Đã sắp xếp hành trang theo phẩm chất và cấp bậc.");
+  addLog("Đã sắp xếp hành trang theo phẩm chất, cấp bậc và độ hoàn hảo.");
 }
 
 /* ==========================================================================
@@ -1642,7 +1781,7 @@ function updateForgeView() {
   }
 
   const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
-  nameEl.innerHTML = `<span style="color:${qInfo.color};">${item.name} +${item.enhance}</span> [Cấp ${item.tier || 1}] [${qInfo.name}] [${item.element}]`;
+  nameEl.innerHTML = `<span style="color:${qInfo.color};">${item.name} +${item.enhance}</span> [Cấp ${item.tier || 1}] [${qInfo.name}] (${item.purity || 100}%) [${item.element}]`;
 
   if (currentForgeMode === "enhance") {
     elemPicker.style.display = "none";
@@ -1743,8 +1882,9 @@ function executeForgeAction() {
 
     item.quality = cfg.next;
 
+    // Tăng uy lực dòng ẩn
     if (item.hiddenStats && item.hiddenStats.val) {
-      item.hiddenStats.val = Math.floor(item.hiddenStats.val * 1.4);
+      item.hiddenStats.val = Math.floor(item.hiddenStats.val * 1.35);
       if (item.hiddenStats.statKey === "elementalAtk") {
         item.hiddenStats.desc = `Băng Sát Ngoại Công +${item.hiddenStats.val}`;
       } else if (item.hiddenStats.statKey === "allResist") {
@@ -1758,6 +1898,33 @@ function executeForgeAction() {
       } else if (item.hiddenStats.statKey === "lifeSteal") {
         item.hiddenStats.desc = `Hút Sinh Lực +${item.hiddenStats.val}%`;
       }
+    }
+
+    // Tự động sinh thêm 1 dòng thuộc tính phụ mới khi tiến phẩm!
+    if (!Array.isArray(item.extraAffixes)) item.extraAffixes = [];
+    const existingKeys = new Set(item.extraAffixes.map(a => a.key));
+    const tier = item.tier || 1;
+    const candidates = [
+      { key: "str", name: "Sức Mạnh", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+      { key: "dex", name: "Thân Pháp", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+      { key: "vit", name: "Sinh Khí", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+      { key: "int", name: "Nội Công", gen: () => randInt(4 + tier * 2, 8 + tier * 3) },
+      { key: "hp", name: "Sinh Lực Tối Đa", gen: () => randInt(30 + tier * 20, 60 + tier * 40) },
+      { key: "allResist", name: "Kháng Tất Cả", isPct: true, gen: () => randInt(2 + Math.floor(tier * 0.6), 5 + Math.floor(tier * 1.2)) },
+      { key: "critRate", name: "Tỷ Lệ Chí Mạng", isPct: true, gen: () => randInt(2, 4 + Math.floor(tier * 0.4)) },
+      { key: "critDmg", name: "Sát Thương Bạo Kích", isPct: true, gen: () => randInt(8 + tier * 2, 16 + tier * 3) },
+      { key: "eva", name: "Thân Pháp Né Tránh", isPct: true, gen: () => randInt(3, 5 + Math.floor(tier * 0.5)) }
+    ].filter(c => !existingKeys.has(c.key));
+
+    if (candidates.length > 0) {
+      const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+      item.extraAffixes.push({
+        key: chosen.key,
+        name: chosen.name,
+        val: chosen.gen(),
+        isPct: !!chosen.isPct
+      });
+      addLog(`<b style="color:#86efac;">[TIẾN PHẨM] Xuất hiện thuộc tính phụ mới: +${chosen.name}!</b>`);
     }
 
     if (item.quality === "BACH_KIM") {
@@ -2118,11 +2285,10 @@ function handleEnemyDefeat() {
     if (G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
-      // Rơi đồ cấp cao tương ứng cấp boss
       const dropTier = map.maxDropTier || 10;
       const dropped = createRandomItem(rndSlot, "HOANG_KIM", dropTier);
       G.inventory.push(dropped);
-      addLog(`<b style="color:#ffd700;">★ RƠI TRANG BỊ: [${dropped.name}] (Cấp ${dropped.tier})!</b>`);
+      addLog(`<b style="color:#ffd700;">★ RƠI TRANG BỊ: [${dropped.name}] (Cấp ${dropped.tier} - ${dropped.purity}%)!</b>`);
       renderInventoryUI();
     }
 
@@ -2134,14 +2300,15 @@ function handleEnemyDefeat() {
     G.kills++;
     if (Math.random() < 0.25) G.crystals += 1;
 
-    // Rơi trang bị theo cấp của map
+    // Rơi trang bị ngẫu nhiên phẩm chất và độ hoàn hảo
     if (Math.random() < 0.16 && G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
       const minT = map.minDropTier || 1;
       const maxT = map.maxDropTier || 2;
-      const dropTier = Math.floor(minT + Math.random() * (maxT - minT + 1));
-      const quality = Math.random() < 0.3 ? "THUONG" : (Math.random() < 0.85 ? "HIEM" : "HOANG_KIM");
+      const dropTier = randInt(minT, maxT);
+      const randQ = Math.random();
+      const quality = randQ < 0.35 ? "THUONG" : (randQ < 0.88 ? "HIEM" : "HOANG_KIM");
       const dropped = createRandomItem(rndSlot, quality, dropTier);
       G.inventory.push(dropped);
       renderInventoryUI();
