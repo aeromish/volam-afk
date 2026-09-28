@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Võ Lâm AFK H5 - Chỉ Số Trang Bị Random VLTK</title>
+  <title>Võ Lâm AFK H5 - Hệ Thống Kỹ Năng & Thuộc Tính Hoàn Chỉnh</title>
   <!-- Pixi.js Canvas Engine v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
   <style>
@@ -370,6 +370,32 @@
       color: #fff;
     }
 
+    /* CARD KỸ NĂNG */
+    .skill-card-box {
+      background: #121316;
+      border: 1px solid #2d2d2d;
+      border-left: 3px solid #ffd700;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .skill-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .skill-badge {
+      font-size: 8.5px;
+      font-weight: bold;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+    .skill-badge.passive { background: #1e3a5f; color: #93c5fd; }
+    .skill-badge.active { background: #064e3b; color: #6ee7b7; }
+    .skill-badge.ult { background: #7c2d12; color: #fdba74; }
+
     /* BẢN ĐỒ */
     .map-card-list {
       display: flex;
@@ -513,7 +539,7 @@
         Thu hoạch dự kiến: <b id="ui-afk-exp" style="color:#38bdf8;">80 EXP/phút</b> | <b id="ui-afk-silver" style="color:#ffd700;">45 Bạc/phút</b>
       </div>
       <div style="font-size: 10px; color: var(--color-text-secondary); margin-bottom: 6px;">
-        Quái dã ngoại rơi Bạc, EXP, Huyền Tinh và Trang Bị với chỉ số random độc nhất (Cấp 1 đến 10).
+        Kỹ năng được nâng cấp sẽ trực tiếp tăng uy lực xuất chiêu và tốc độ diệt quái.
       </div>
       <button class="btn-action" style="width:100%; background:#450a0a; border-color:#ef4444; color:#ffcccc; font-weight:bold; display:none;" id="boss-btn" onclick="challengeBoss()">KHIÊU CHIẾN BOSS BẢN ĐỒ</button>
     </div>
@@ -586,12 +612,18 @@
     <button class="btn-action" style="width:100%;" onclick="resetPotentialPoints()">TẨY ĐIỂM TIỀM NĂNG (MIỄN PHÍ)</button>
   </div>
 
-  <!-- TAB 3: KỸ NĂNG -->
+  <!-- TAB 3: KỸ NĂNG ĐẦY ĐỦ 6 CHIÊU MÔN PHÁI -->
   <div class="tab-view" id="tab-skills">
     <div class="panel-header">
-      <span>KỸ NĂNG MÔN PHÁI</span>
-      <span>Điểm Kỹ Năng: <b id="ui-skill-pts" style="color:#ffd700;">0</b></span>
+      <span>KỸ NĂNG MÔN PHÁI (<span id="ui-skill-sect-name" style="color:#ffd700;">Vô Môn Phái</span>)</span>
+      <span>Điểm Kỹ Năng: <b id="ui-skill-pts" style="color:#ffd700; font-size:13px;">0</b></span>
     </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <span style="font-size:10px; color:#888;">* Điểm kỹ năng cộng thẳng vào các chỉ số F3 & Lực Chiến.</span>
+      <button class="btn-action" style="font-size:9.5px; padding:3px 8px; color:#ffaaaa; border-color:#ef4444;" onclick="resetSkillPoints()">TẨY ĐIỂM KỸ NĂNG</button>
+    </div>
+
     <div id="skill-tree-list"></div>
   </div>
 
@@ -754,7 +786,7 @@
 
 <script>
 /* ==========================================================================
-   1. BỘ DỮ LIỆU TRANG BỊ 10 CẤP BẬC VÕ LÂM TRUYỀN KỲ 1 PC (TIER 1 ĐẾN 10)
+   1. CẤU HÌNH NGŨ HÀNH & KHO DỮ LIỆU KỸ NĂNG ĐẦY ĐỦ 6 CHIÊU MÔN PHÁI
    ========================================================================== */
 function safeNum(val, fallback = 0) {
   const n = Number(val);
@@ -820,38 +852,224 @@ const SECT_CONFIG = {
   vo_dang:      { name: "Võ Đang",      elem: "THO",   color: ELEM_COLORS.THO,   ultName: "Vô Ngã Vô Kiếm",    ultMult: 3.0 }
 };
 
+/**
+ * HỆ THỐNG KỸ NĂNG CHI TIẾT 6 CHIÊU CHO TỪNG PHÁI
+ * Mỗi kỹ năng định nghĩa rõ các chỉ số cộng dồn (statMods) theo từng cấp độ
+ */
 const SECT_SKILLS_DB = {
   thieu_lam: [
-    { id: "tl_1", name: "La Hán Trận", type: "passive", desc: "+15% Giáp & Phản 10% sát thương", maxLvl: 20 },
-    { id: "tl_2", name: "Kim Cang Quyền", type: "active", desc: "Tấn công 180% sát thương Kim", maxLvl: 20 },
-    { id: "tl_3", name: "Sư Tử Hống", type: "ult", desc: "Gây choáng & x2.8 sát thương Kim", maxLvl: 20 }
+    {
+      id: "tl_1", name: "La Hán Trận", type: "passive", maxLvl: 20,
+      desc: "Tăng Giáp phòng ngự (%) và Phản đòn sát thương cận chiến.",
+      calcDesc: (lvl) => `Giáp +${(lvl * 1.5).toFixed(1)}%, Phản đòn +${lvl * 1}%`,
+      statMods: (lvl) => ({ defPct: lvl * 1.5, reflectPct: lvl * 1 })
+    },
+    {
+      id: "tl_2", name: "Kim Cang Bất Hoại", type: "passive", maxLvl: 20,
+      desc: "Tăng Sinh Lực tối đa (%) và Kháng Tất Cả ngũ hành.",
+      calcDesc: (lvl) => `Sinh lực tối đa +${lvl * 2}%, Kháng Tất Cả +${lvl * 1}`,
+      statMods: (lvl) => ({ hpPct: lvl * 2, allResist: lvl * 1 })
+    },
+    {
+      id: "tl_3", name: "Thiếu Lâm Võ Kỹ", type: "passive", maxLvl: 20,
+      desc: "Tăng Lực công kích ngoại (%) và Hồi phục sinh lực mỗi giây.",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 2.2).toFixed(1)}%, Hồi phục +${(lvl * 0.5).toFixed(1)} HP/s`,
+      statMods: (lvl) => ({ atkPct: lvl * 2.2, hpRegen: lvl * 0.5 })
+    },
+    {
+      id: "tl_4", name: "Đạt Ma Độ Giang", type: "active", maxLvl: 20,
+      desc: "Đòn chưởng Phật môn uy lực cao, gia tăng sát thương đòn đánh cơ bản.",
+      calcDesc: (lvl) => `Sát thương đòn đánh +${lvl * 1.8}%, Băng sát +${lvl * 5}`,
+      statMods: (lvl) => ({ atkPct: lvl * 1.8, elemAtk: lvl * 5 })
+    },
+    {
+      id: "tl_5", name: "Sư Tử Hống", type: "ult", maxLvl: 20,
+      desc: "Tuyệt kỹ chấn động kinh hoàng, tăng cực hạn sát thương nộ chiêu.",
+      calcDesc: (lvl) => `Khuếch đại tuyệt kỹ +${(lvl * 0.1).toFixed(2)}x sát thương`,
+      statMods: (lvl) => ({ ultMultBonus: lvl * 0.1 })
+    },
+    {
+      id: "tl_6", name: "Dịch Cân Kinh", type: "passive", maxLvl: 20,
+      desc: "Bí tịch trấn phái, giảm sát thương nhận vào (%) và tăng Tỷ lệ Chí Mạng.",
+      calcDesc: (lvl) => `Giảm sát thương +${(lvl * 0.6).toFixed(1)}%, Tỷ lệ Chí Mạng +${(lvl * 0.4).toFixed(1)}%`,
+      statMods: (lvl) => ({ drPctBonus: lvl * 0.6, critRate: lvl * 0.4 })
+    }
   ],
   duong_mon: [
-    { id: "dm_1", name: "Tâm Ma Thần Công", type: "passive", desc: "+12% Bạo Kích & +15% Xuyên Giáp", maxLvl: 20 },
-    { id: "dm_2", name: "Đoạt Hồn Tiêu", type: "active", desc: "Tiêu độc 210% sát thương Mộc", maxLvl: 20 },
-    { id: "dm_3", name: "Bão Vũ Lê Hoa", type: "ult", desc: "Mưa bão tiêu x3.2 sát thương Mộc", maxLvl: 20 }
+    {
+      id: "dm_1", name: "Tâm Ma Thần Công", type: "passive", maxLvl: 20,
+      desc: "Gia tăng Tỷ Lệ Chí Mạng (%) và Sát Thương Bạo Kích (%).",
+      calcDesc: (lvl) => `Chí Mạng +${(lvl * 0.6).toFixed(1)}%, ST Bạo Kích +${lvl * 2.5}%`,
+      statMods: (lvl) => ({ critRate: lvl * 0.6, critDmg: lvl * 2.5 })
+    },
+    {
+      id: "dm_2", name: "Độc Thích Cốt", type: "passive", maxLvl: 20,
+      desc: "Bôi độc xuyên giáp, bỏ qua phòng ngự của kẻ địch.",
+      calcDesc: (lvl) => `Xuyên Giáp +${(lvl * 0.9).toFixed(1)}%, Độc Sát +${lvl * 6}`,
+      statMods: (lvl) => ({ piercePct: lvl * 0.9, elemAtk: lvl * 6 })
+    },
+    {
+      id: "dm_3", name: "Nhiếp Hồn Nguyệt Ảnh", type: "passive", maxLvl: 20,
+      desc: "Thân pháp ma mị, gia tăng Né Tránh và Giảm thời gian phục hồi.",
+      calcDesc: (lvl) => `Né Tránh +${(lvl * 0.6).toFixed(1)}%, Phục hồi -${lvl * 1}%`,
+      statMods: (lvl) => ({ eva: lvl * 0.6, recovery: lvl * 1 })
+    },
+    {
+      id: "dm_4", name: "Đoạt Hồn Phi Tiêu", type: "active", maxLvl: 20,
+      desc: "Ám khí liên hoàn tăng vọt Lực công kích Mộc.",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 2.2).toFixed(1)}%, Chí Mạng +${(lvl * 0.3).toFixed(1)}%`,
+      statMods: (lvl) => ({ atkPct: lvl * 2.2, critRate: lvl * 0.3 })
+    },
+    {
+      id: "dm_5", name: "Bão Vũ Lê Hoa", type: "ult", maxLvl: 20,
+      desc: "Mưa bão phi tiêu đoạt mệnh, tăng vọt uy lực chiêu Nộ.",
+      calcDesc: (lvl) => `Khuếch đại tuyệt kỹ +${(lvl * 0.12).toFixed(2)}x sát thương`,
+      statMods: (lvl) => ({ ultMultBonus: lvl * 0.12 })
+    },
+    {
+      id: "dm_6", name: "Mê Tung Ảo Ảnh", type: "passive", maxLvl: 20,
+      desc: "Trấn phái bộ pháp, tăng mạnh Né Tránh và Bạo Kích.",
+      calcDesc: (lvl) => `Né Tránh +${(lvl * 0.8).toFixed(1)}%, ST Bạo Kích +${lvl * 3}%`,
+      statMods: (lvl) => ({ eva: lvl * 0.8, critDmg: lvl * 3 })
+    }
   ],
   nga_mi: [
-    { id: "nm_1", name: "Mộng Điệp", type: "passive", desc: "+15% Kháng Tất Cả & Hút 8% Sinh Lực", maxLvl: 20 },
-    { id: "nm_2", name: "Phong Sương Toái Ảnh", type: "active", desc: "Đóng băng 170% sát thương Thủy", maxLvl: 20 },
-    { id: "nm_3", name: "Băng Tâm Tiên Tử", type: "ult", desc: "Hồi 35% HP & x2.2 sát thương Thủy", maxLvl: 20 }
+    {
+      id: "nm_1", name: "Mộng Điệp", type: "passive", maxLvl: 20,
+      desc: "Thanh tịnh tâm hồn, tăng Sinh Lực tối đa (%) và Hồi máu mỗi giây.",
+      calcDesc: (lvl) => `Sinh lực tối đa +${lvl * 2}%, Hồi máu +${lvl * 1} HP/s`,
+      statMods: (lvl) => ({ hpPct: lvl * 2, hpRegen: lvl * 1 })
+    },
+    {
+      id: "nm_2", name: "Phật Quang Phổ Chiếu", type: "passive", maxLvl: 20,
+      desc: "Hào quang từ bi, gia tăng Kháng Tất Cả và Hút Sinh Lực (%).",
+      calcDesc: (lvl) => `Kháng Tất Cả +${(lvl * 1.2).toFixed(1)}, Hút Sinh Lực +${(lvl * 0.4).toFixed(1)}%`,
+      statMods: (lvl) => ({ allResist: lvl * 1.2, lifeStealPct: lvl * 0.4 })
+    },
+    {
+      id: "nm_3", name: "Phật Tâm Từ Hữu", type: "passive", maxLvl: 20,
+      desc: "Tăng Lực công kích Thủy và dung lượng Nội Lực tối đa (MP).",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 1.8).toFixed(1)}%, Nội lực +${lvl * 2.5}%`,
+      statMods: (lvl) => ({ atkPct: lvl * 1.8, mpPct: lvl * 2.5 })
+    },
+    {
+      id: "nm_4", name: "Phong Sương Toái Ảnh", type: "active", maxLvl: 20,
+      desc: "Băng hoa toái kiếm, gây sát thương Thủy băng hàn buốt giá.",
+      calcDesc: (lvl) => `Lực công kích +${lvl * 2}%, Băng sát +${lvl * 6}`,
+      statMods: (lvl) => ({ atkPct: lvl * 2, elemAtk: lvl * 6 })
+    },
+    {
+      id: "nm_5", name: "Băng Tâm Tiên Tử", type: "ult", maxLvl: 20,
+      desc: "Bão tuyết hộ thể, tăng mạnh lượng sát thương và phục hồi khi tung Nộ.",
+      calcDesc: (lvl) => `Khuếch đại tuyệt kỹ +${(lvl * 0.1).toFixed(2)}x sát thương`,
+      statMods: (lvl) => ({ ultMultBonus: lvl * 0.1 })
+    },
+    {
+      id: "nm_6", name: "Thanh Âm Mạn Tụng", type: "passive", maxLvl: 20,
+      desc: "Trấn phái thanh tâm, giảm mạnh thời gian bị khống chế và tăng Giáp.",
+      calcDesc: (lvl) => `Phục hồi -${(lvl * 1.5).toFixed(1)}%, Phòng ngự Giáp +${lvl * 1.5}%`,
+      statMods: (lvl) => ({ recovery: lvl * 1.5, defPct: lvl * 1.5 })
+    }
   ],
   cai_bang: [
-    { id: "cb_1", name: "Túy Điệp Cuồng Vũ", type: "passive", desc: "+15% Né Tránh, đòn đánh nổ Hỏa", maxLvl: 20 },
-    { id: "cb_2", name: "Kháng Long Hữu Hối", type: "active", desc: "Kình long 220% sát thương Hỏa", maxLvl: 20 },
-    { id: "cb_3", name: "Hàng Long Thập Bát", type: "ult", desc: "18 rồng lửa x3.4 sát thương Hỏa", maxLvl: 20 }
+    {
+      id: "cb_1", name: "Túy Điệp Cuồng Vũ", type: "passive", maxLvl: 20,
+      desc: "Bộ pháp say rượu thoắt ẩn thoắt hiện, tăng Né Tránh và Bạo Kích.",
+      calcDesc: (lvl) => `Né Tránh +${(lvl * 0.7).toFixed(1)}%, Tỷ lệ Chí Mạng +${(lvl * 0.4).toFixed(1)}%`,
+      statMods: (lvl) => ({ eva: lvl * 0.7, critRate: lvl * 0.4 })
+    },
+    {
+      id: "cb_2", name: "Hóa Công Đại Pháp", type: "passive", maxLvl: 20,
+      desc: "Khí thế hừng hực, tăng Lực công kích Hỏa và Xuyên giáp.",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 2.4).toFixed(1)}%, Xuyên Giáp +${(lvl * 0.8).toFixed(1)}%`,
+      statMods: (lvl) => ({ atkPct: lvl * 2.4, piercePct: lvl * 0.8 })
+    },
+    {
+      id: "cb_3", name: "Tiêu Diêu Du", type: "passive", maxLvl: 20,
+      desc: "Tự do tự tại, tăng vọt Sát Thương Bạo Kích (%) và Hồi máu.",
+      calcDesc: (lvl) => `ST Bạo Kích +${lvl * 3}%, Hồi máu +${(lvl * 0.6).toFixed(1)} HP/s`,
+      statMods: (lvl) => ({ critDmg: lvl * 3, hpRegen: lvl * 0.6 })
+    },
+    {
+      id: "cb_4", name: "Kháng Long Hữu Hối", type: "active", maxLvl: 20,
+      desc: "Chưởng lực rồng lửa bộc phát sát thương thiêu đốt.",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 2.2).toFixed(1)}%, Hỏa sát +${lvl * 6}`,
+      statMods: (lvl) => ({ atkPct: lvl * 2.2, elemAtk: lvl * 6 })
+    },
+    {
+      id: "cb_5", name: "Hàng Long Thập Bát", type: "ult", maxLvl: 20,
+      desc: "18 kình long xuất hải thiêu đốt vạn vật, tăng cực đại sát thương Nộ.",
+      calcDesc: (lvl) => `Khuếch đại tuyệt kỹ +${(lvl * 0.12).toFixed(2)}x sát thương`,
+      statMods: (lvl) => ({ ultMultBonus: lvl * 0.12 })
+    },
+    {
+      id: "cb_6", name: "Đả Cẩu Bổng Pháp", type: "passive", maxLvl: 20,
+      desc: "Trấn phái côn pháp, tăng Phòng ngự Giáp (%) và Hút Sinh Lực (%).",
+      calcDesc: (lvl) => `Giáp +${(lvl * 1.5).toFixed(1)}%, Hút Sinh Lực +${(lvl * 0.35).toFixed(1)}%`,
+      statMods: (lvl) => ({ defPct: lvl * 1.5, lifeStealPct: lvl * 0.35 })
+    }
   ],
   vo_dang: [
-    { id: "vd_1", name: "Tọa Vọng Vô Vi", type: "passive", desc: "Dùng MP đỡ 50% sát thương thay HP", maxLvl: 20 },
-    { id: "vd_2", name: "Thái Cực Kiếm Pháp", type: "active", desc: "Kiếm trận Âm Dương 190% ST Thổ", maxLvl: 20 },
-    { id: "vd_3", name: "Vô Ngã Vô Kiếm", type: "ult", desc: "Phi kiếm tê liệt x3.0 sát thương Thổ", maxLvl: 20 }
+    {
+      id: "vd_1", name: "Tọa Vọng Vô Vi", type: "passive", maxLvl: 20,
+      desc: "Hư tĩnh hộ thể, tăng Nội Lực (MP) và dùng MP gánh sát thương thay HP.",
+      calcDesc: (lvl) => `Nội lực +${lvl * 3}%, MP hấp thụ sát thương +${lvl * 1}%`,
+      statMods: (lvl) => ({ mpPct: lvl * 3, mpShieldPct: lvl * 1 })
+    },
+    {
+      id: "vd_2", name: "Thái Cực Thần Công", type: "passive", maxLvl: 20,
+      desc: "Âm dương tương sinh, tăng Lực công kích Thổ và Kháng Tất Cả.",
+      calcDesc: (lvl) => `Lực công kích +${(lvl * 2.2).toFixed(1)}%, Kháng Tất Cả +${lvl * 1}`,
+      statMods: (lvl) => ({ atkPct: lvl * 2.2, allResist: lvl * 1 })
+    },
+    {
+      id: "vd_3", name: "Thất Tinh Kiếm Trận", type: "passive", maxLvl: 20,
+      desc: "Kiếm trận tinh tú, tăng Phòng ngự Giáp (%) và Sinh Lực tối đa.",
+      calcDesc: (lvl) => `Giáp +${(lvl * 1.5).toFixed(1)}%, Sinh lực tối đa +${lvl * 1.5}%`,
+      statMods: (lvl) => ({ defPct: lvl * 1.5, hpPct: lvl * 1.5 })
+    },
+    {
+      id: "vd_4", name: "Thái Cực Kiếm Pháp", type: "active", maxLvl: 20,
+      desc: "Xuất chiêu xoay chuyển càn khôn, gây sát thương Thổ kèm định thân.",
+      calcDesc: (lvl) => `Lực công kích +${lvl * 2}%, Lôi sát +${lvl * 6}`,
+      statMods: (lvl) => ({ atkPct: lvl * 2, elemAtk: lvl * 6 })
+    },
+    {
+      id: "vd_5", name: "Vô Ngã Vô Kiếm", type: "ult", maxLvl: 20,
+      desc: "Kiếm khí thông thiên, tăng vọt sát thương khi tung tuyệt chiêu Nộ.",
+      calcDesc: (lvl) => `Khuếch đại tuyệt kỹ +${(lvl * 0.1).toFixed(2)}x sát thương`,
+      statMods: (lvl) => ({ ultMultBonus: lvl * 0.1 })
+    },
+    {
+      id: "vd_6", name: "Bát Quái Du Long", type: "passive", maxLvl: 20,
+      desc: "Trấn phái du long, gia tăng Tỷ Lệ Bạo Kích và Thân Pháp Né Tránh.",
+      calcDesc: (lvl) => `Chí Mạng +${(lvl * 0.5).toFixed(1)}%, Né Tránh +${(lvl * 0.5).toFixed(1)}%`,
+      statMods: (lvl) => ({ critRate: lvl * 0.5, eva: lvl * 0.5 })
+    }
   ],
   vo_mon_phai: [
-    { id: "vmp_1", name: "Khí Công Nhập Môn", type: "passive", desc: "+50 Máu & +5 Công cơ bản", maxLvl: 5 },
-    { id: "vmp_2", name: "Quyền Cước Sơ Khai", type: "active", desc: "Đòn đánh gây 120% sát thương", maxLvl: 5 }
+    {
+      id: "vmp_1", name: "Khí Công Nhập Môn", type: "passive", maxLvl: 5,
+      desc: "Rèn luyện thể lực cơ bản tại Ba Lăng Huyện.",
+      calcDesc: (lvl) => `Sinh lực +${lvl * 50}, Lực công kích +${lvl * 6}`,
+      statMods: (lvl) => ({ flatHp: lvl * 50, flatAtk: lvl * 6 })
+    },
+    {
+      id: "vmp_2", name: "Thân Pháp Căn Bản", type: "passive", maxLvl: 5,
+      desc: "Tập luyện né đòn và phòng thủ sơ cấp.",
+      calcDesc: (lvl) => `Né Tránh +${lvl * 1}%, Phòng ngự Giáp +${lvl * 5}`,
+      statMods: (lvl) => ({ eva: lvl * 1, flatDef: lvl * 5 })
+    },
+    {
+      id: "vmp_3", name: "Quyền Cước Sơ Khai", type: "active", maxLvl: 5,
+      desc: "Chiêu thức quyền cước nhập môn, tăng sát thương cơ bản.",
+      calcDesc: (lvl) => `Lực công kích +${lvl * 6}, Chí Mạng +${lvl * 0.6}%`,
+      statMods: (lvl) => ({ flatAtk: lvl * 6, critRate: lvl * 0.6 })
+    }
   ]
 };
 
+// CẤU HÌNH BẢN ĐỒ
 const MAPS_DATABASE = {
   train: [
     { id: "map_balang", name: "Ba Lăng Huyện", reqLvl: 1, minDropTier: 1, maxDropTier: 2, elem: "MOC", expRate: 60, silverRate: 35, bossName: "Đầu Mục Ba Lăng" },
@@ -985,7 +1203,7 @@ function getDefaultState() {
     questIndex: 0,
     questProgress: 0,
     datauStreak: 0,
-    skillPoints: 1,
+    skillPoints: 2,
     skillAllocations: {},
     lastSaved: Date.now(),
     sectProfiles: {
@@ -1031,7 +1249,7 @@ function sanitizeState(loaded) {
   if (!Array.isArray(res.inventory)) res.inventory = [];
   res.inventory = res.inventory.map(it => sanitizeItem(it)).filter(Boolean);
 
-  if (!res.skillAllocations) res.skillAllocations = {};
+  if (!res.skillAllocations || typeof res.skillAllocations !== 'object') res.skillAllocations = {};
 
   res.level = Math.max(1, safeNum(res.level, 1));
   res.exp = safeNum(res.exp, 0);
@@ -1039,7 +1257,7 @@ function sanitizeState(loaded) {
   res.crystals = safeNum(res.crystals, 8);
   res.rage = safeNum(res.rage, 0);
   res.datauStreak = safeNum(res.datauStreak, 0);
-  res.skillPoints = safeNum(res.skillPoints, 1);
+  res.skillPoints = Math.max(0, safeNum(res.skillPoints, 2));
 
   return res;
 }
@@ -1087,7 +1305,7 @@ function closeOfflineModal() {
 }
 
 /* ==========================================================================
-   3. HỆ THỐNG SINH TRANG BỊ VỚI CHỈ SỐ RANDOM VÀ THUỘC TÍNH PHỤ (AFFIXES)
+   3. HỆ THỐNG TRANG BỊ RANDOM & THUỘC TÍNH PHỤ
    ========================================================================== */
 function getTierByLevel(lvl) {
   if (lvl < 10) return 1;
@@ -1102,9 +1320,6 @@ function getTierByLevel(lvl) {
   return 10;
 }
 
-/**
- * Sinh ngẫu nhiên các dòng thuộc tính phụ (Random Affixes)
- */
 function generateExtraAffixes(slot, quality, tier) {
   const countConfig = {
     THUONG: Math.random() < 0.4 ? 1 : 0,
@@ -1140,9 +1355,6 @@ function generateExtraAffixes(slot, quality, tier) {
   }));
 }
 
-/**
- * Sinh trang bị chuẩn VLTK với các chỉ số dao động ngẫu nhiên (Random Rolls)
- */
 function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
   const elem = elems[Math.floor(Math.random() * elems.length)];
@@ -1152,7 +1364,6 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const namePool = tierConfig[slot] || ["Bảo Vật"];
   const name = namePool[Math.floor(Math.random() * namePool.length)];
 
-  // Độ hoàn hảo ngẫu nhiên (Purity Percentage)
   let purityMin = 75, purityMax = 100;
   if (quality === "HIEM") { purityMin = 85; purityMax = 110; }
   else if (quality === "HOANG_KIM") { purityMin = 100; purityMax = 120; }
@@ -1160,7 +1371,6 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const purity = randInt(purityMin, purityMax);
   const purityMult = purity / 100;
 
-  // Hệ số phẩm chất
   let mult = 1.0;
   if (quality === "THUONG") mult = 0.85;
   else if (quality === "HOANG_KIM") mult = 1.65;
@@ -1175,66 +1385,52 @@ function createRandomItem(slot, quality = "HIEM", targetTier = null) {
 
   const hiddenStats = { statKey: "", val: 0, desc: "" };
 
-  // Random chỉ số cơ bản trong khoảng (Min - Max Range)
   if (slot === "weapon") {
     stats.atk = randInt(Math.floor((22 + tier * 15) * totalMult), Math.floor((32 + tier * 21) * totalMult));
     stats.critRate = randInt(3 + Math.floor(tier * 0.5), 5 + Math.floor(tier * 1.1));
     stats.pierce = randInt(2 + tier, 4 + Math.floor(tier * 1.8));
-
     hiddenStats.statKey = "elementalAtk";
     hiddenStats.val = randInt(25 + tier * 20, 40 + tier * 30);
     hiddenStats.desc = `Băng Sát Ngoại Công +${hiddenStats.val}`;
-  } 
-  else if (slot === "helm") {
+  } else if (slot === "helm") {
     stats.def = randInt(Math.floor((10 + tier * 6) * totalMult), Math.floor((15 + tier * 8.5) * totalMult));
     stats.hp = randInt(Math.floor((45 + tier * 35) * totalMult), Math.floor((70 + tier * 55) * totalMult));
     stats.hpRegen = randInt(Math.floor((2 + tier * 1) * totalMult), Math.floor((4 + tier * 2) * totalMult));
-
     hiddenStats.statKey = "recovery";
     hiddenStats.val = randInt(8 + Math.floor(tier * 2), 12 + Math.floor(tier * 3));
     hiddenStats.desc = `Thời Gian Phục Hồi -${hiddenStats.val}%`;
-  } 
-  else if (slot === "armor") {
+  } else if (slot === "armor") {
     stats.def = randInt(Math.floor((20 + tier * 12) * totalMult), Math.floor((30 + tier * 17) * totalMult));
     stats.hp = randInt(Math.floor((80 + tier * 60) * totalMult), Math.floor((130 + tier * 85) * totalMult));
     stats.allResist = randInt(Math.floor((3 + tier * 1.4) * totalMult), Math.floor((6 + tier * 2.2) * totalMult));
-
     hiddenStats.statKey = "allResist";
     hiddenStats.val = randInt(6 + Math.floor(tier * 1.8), 10 + Math.floor(tier * 2.8));
     hiddenStats.desc = `Kháng Tất Cả +${hiddenStats.val}%`;
-  } 
-  else if (slot === "ring") {
+  } else if (slot === "ring") {
     stats.atk = randInt(Math.floor((10 + tier * 6) * totalMult), Math.floor((16 + tier * 10) * totalMult));
     stats.mp = randInt(Math.floor((50 + tier * 30) * totalMult), Math.floor((80 + tier * 50) * totalMult));
     stats.critRate = randInt(Math.floor((3 + tier * 0.7) * totalMult), Math.floor((6 + tier * 1.2) * totalMult));
-
     hiddenStats.statKey = "critDmg";
     hiddenStats.val = randInt(12 + Math.floor(tier * 3), 18 + Math.floor(tier * 4.5));
     hiddenStats.desc = `Sát Thương Bạo Kích +${hiddenStats.val}%`;
-  } 
-  else if (slot === "boots") {
+  } else if (slot === "boots") {
     stats.def = randInt(Math.floor((8 + tier * 5) * totalMult), Math.floor((13 + tier * 8) * totalMult));
     stats.eva = randInt(Math.floor((4 + tier * 1) * totalMult), Math.floor((7 + tier * 1.6) * totalMult));
     stats.hp = randInt(Math.floor((35 + tier * 25) * totalMult), Math.floor((55 + tier * 45) * totalMult));
-
     hiddenStats.statKey = "eva";
     hiddenStats.val = randInt(6 + Math.floor(tier * 1.5), 10 + Math.floor(tier * 2.4));
     hiddenStats.desc = `Thân Pháp Né Tránh +${hiddenStats.val}%`;
-  } 
-  else if (slot === "amulet") {
+  } else if (slot === "amulet") {
     stats.hp = randInt(Math.floor((60 + tier * 45) * totalMult), Math.floor((90 + tier * 70) * totalMult));
     stats.mp = randInt(Math.floor((40 + tier * 25) * totalMult), Math.floor((65 + tier * 40) * totalMult));
     stats.allResist = randInt(Math.floor((5 + tier * 1.3) * totalMult), Math.floor((8 + tier * 2.1) * totalMult));
-
     hiddenStats.statKey = "lifeSteal";
     hiddenStats.val = randInt(3 + Math.floor(tier * 1), 5 + Math.floor(tier * 1.6));
     hiddenStats.desc = `Hút Sinh Lực +${hiddenStats.val}%`;
   }
 
-  // Thuộc tính phụ ngẫu nhiên
   const extraAffixes = generateExtraAffixes(slot, quality, tier);
 
-  // Thuộc tính thần thoại Bạch Kim
   let bachKimStat = null;
   if (quality === "BACH_KIM") {
     bachKimStat = getMythicStatBySlot(slot);
@@ -1269,7 +1465,7 @@ function getMythicStatBySlot(slot) {
 }
 
 /* ==========================================================================
-   4. TÍNH TOÁN BẢNG F3 & LỰC CHIẾN (ĐỒNG BỘ VỚI DÒNG PHỤ RANDOM)
+   4. BỘ TÍNH TOÁN F3: TÍCH HỢP ĐẦY ĐỦ KỸ NĂNG, TIỀM NĂNG VÀ TRANG BỊ
    ========================================================================== */
 function calculateHeroStats() {
   const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10 };
@@ -1291,6 +1487,7 @@ function calculateHeroStats() {
 
   let extraStr = 0, extraDex = 0, extraVit = 0, extraInt = 0;
 
+  // 1. TÍCH HỢP TỪ 6 TRANG BỊ ĐANG MẶC
   Object.values(G.equipped).forEach(item => {
     if (!item) return;
     const enhanceMult = 1 + (item.enhance * 0.1);
@@ -1313,7 +1510,6 @@ function calculateHeroStats() {
       if (item.stats.hpRegen) hpRegen += item.stats.hpRegen * enhanceMult;
     }
 
-    // Cộng dòng phụ ngẫu nhiên
     if (Array.isArray(item.extraAffixes)) {
       item.extraAffixes.forEach(aff => {
         if (aff.key === "str") extraStr += aff.val;
@@ -1331,7 +1527,6 @@ function calculateHeroStats() {
       });
     }
 
-    // Cộng dòng ẩn khi được kích hoạt tương sinh
     if (item.isSecretActive && item.hiddenStats) {
       const h = item.hiddenStats;
       if (h.statKey === "allResist") allResist += h.val;
@@ -1345,7 +1540,6 @@ function calculateHeroStats() {
       }
     }
 
-    // Cộng dòng Bạch Kim Thần Thoại
     if (item.quality === "BACH_KIM" && item.bachKimStat) {
       const b = item.bachKimStat;
       if (b.key === "pierce") pierce += (b.val / 100);
@@ -1357,7 +1551,6 @@ function calculateHeroStats() {
     }
   });
 
-  // Tác dụng của Tiềm Năng bổ sung từ Trang Bị
   baseAtkMin += extraStr * 1.8;
   baseAtkMax += extraStr * 2.6;
   baseDef += extraStr * 1.2;
@@ -1367,7 +1560,56 @@ function calculateHeroStats() {
   hpRegen += extraVit * 0.3;
   maxMp += extraInt * 10;
 
-  const drRate = baseDef / (baseDef + 120 + lvl * 10);
+  // 2. TÍCH HỢP TỪ KỸ NĂNG MÔN PHÁI (SKILLS TO STATS)
+  let skillAtkPct = 0;
+  let skillDefPct = 0;
+  let skillHpPct = 0;
+  let skillMpPct = 0;
+  let skillDrBonus = 0;
+
+  const currentSectSkills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
+  currentSectSkills.forEach(sk => {
+    const sLvl = G.skillAllocations[sk.id] || 0;
+    if (sLvl > 0 && typeof sk.statMods === 'function') {
+      const mods = sk.statMods(sLvl);
+      if (mods.atkPct) skillAtkPct += mods.atkPct;
+      if (mods.defPct) skillDefPct += mods.defPct;
+      if (mods.hpPct) skillHpPct += mods.hpPct;
+      if (mods.mpPct) skillMpPct += mods.mpPct;
+      if (mods.allResist) allResist += mods.allResist;
+      if (mods.critRate) critRate += (mods.critRate / 100);
+      if (mods.critDmg) critDmg += (mods.critDmg / 100);
+      if (mods.eva) evasion += (mods.eva / 100);
+      if (mods.lifeStealPct) lifeSteal += (mods.lifeStealPct / 100);
+      if (mods.piercePct) pierce += (mods.piercePct / 100);
+      if (mods.recovery) recovery += mods.recovery;
+      if (mods.hpRegen) hpRegen += mods.hpRegen;
+      if (mods.drPctBonus) skillDrBonus += mods.drPctBonus;
+      if (mods.flatHp) maxHp += mods.flatHp;
+      if (mods.flatAtk) { baseAtkMin += mods.flatAtk; baseAtkMax += mods.flatAtk; }
+      if (mods.flatDef) baseDef += mods.flatDef;
+      if (mods.elemAtk) { baseAtkMin += mods.elemAtk; baseAtkMax += mods.elemAtk; }
+    }
+  });
+
+  // Nhân hệ số phần trăm từ kỹ năng
+  if (skillAtkPct > 0) {
+    baseAtkMin *= (1 + skillAtkPct / 100);
+    baseAtkMax *= (1 + skillAtkPct / 100);
+  }
+  if (skillDefPct > 0) {
+    baseDef *= (1 + skillDefPct / 100);
+  }
+  if (skillHpPct > 0) {
+    maxHp *= (1 + skillHpPct / 100);
+  }
+  if (skillMpPct > 0) {
+    maxMp *= (1 + skillMpPct / 100);
+  }
+
+  const rawDrRate = baseDef / (baseDef + 120 + lvl * 10);
+  const drPct = Math.min(85, Math.floor((rawDrRate * 100) + skillDrBonus));
+
   const bp = Math.floor(
     (baseAtkMax * 3.5) + (baseDef * 4.2) + (maxHp * 0.4) + (maxMp * 0.25) +
     (critRate * 1200) + (evasion * 1000) + (allResist * 25) + (lifeSteal * 1500) +
@@ -1378,7 +1620,7 @@ function calculateHeroStats() {
     atkMin: Math.floor(baseAtkMin),
     atkMax: Math.floor(baseAtkMax),
     def: Math.floor(baseDef),
-    drPct: Math.min(85, Math.floor(drRate * 100)),
+    drPct: drPct,
     maxHp: Math.floor(maxHp),
     maxMp: Math.floor(maxMp),
     critRate: Math.min(0.85, critRate),
@@ -1439,7 +1681,106 @@ function resetPotentialPoints() {
 }
 
 /* ==========================================================================
-   5. HIỂN THỊ TÚI ĐỒ & SO SÁNH TRANG BỊ
+   5. RENDER CÂY KỸ NĂNG & NÂNG CẤP CHIÊU THỨC
+   ========================================================================== */
+function renderSkillTree() {
+  const container = document.getElementById('skill-tree-list');
+  if (!container) return;
+  container.innerHTML = "";
+
+  document.getElementById('ui-skill-pts').innerText = G.skillPoints;
+  const sectTitleEl = document.getElementById('ui-skill-sect-name');
+  if (sectTitleEl) sectTitleEl.innerText = SECT_CONFIG[G.activeSect].name;
+
+  const skills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
+
+  skills.forEach(sk => {
+    const curLvl = G.skillAllocations[sk.id] || 0;
+    const isMax = curLvl >= sk.maxLvl;
+
+    const box = document.createElement('div');
+    box.className = "skill-card-box";
+
+    let badgeClass = "passive";
+    let badgeText = "BỊ ĐỘNG";
+    if (sk.type === "active") { badgeClass = "active"; badgeText = "CHỦ ĐỘNG"; }
+    else if (sk.type === "ult") { badgeClass = "ult"; badgeText = "TRẤN PHÁI (NỘ)"; }
+
+    const curEffect = curLvl > 0 && typeof sk.calcDesc === 'function' ? sk.calcDesc(curLvl) : "Chưa kích hoạt";
+    const nextEffect = !isMax && typeof sk.calcDesc === 'function' ? sk.calcDesc(curLvl + 1) : "Đã đạt cấp tối đa";
+
+    box.innerHTML = `
+      <div class="skill-card-header">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="skill-badge ${badgeClass}">${badgeText}</span>
+          <span style="font-weight:bold; color:#ffd700; font-size:11.5px;">${sk.name}</span>
+          <span style="color:#38bdf8; font-size:10px; font-weight:bold;">Lv.${curLvl}/${sk.maxLvl}</span>
+        </div>
+        <button class="btn-action" style="padding:2px 8px; font-size:10px; font-weight:bold; ${isMax ? 'opacity:0.4;' : 'background:#b45309; color:#fff;'}"
+          ${isMax ? 'disabled' : ''} onclick="upgradeSkill('${sk.id}', ${sk.maxLvl})">
+          ${isMax ? 'ĐÃ MAX' : '+ Nâng (1đ)'}
+        </button>
+      </div>
+
+      <div style="font-size:9.5px; color:#888; margin-top:2px;">${sk.desc}</div>
+
+      <div style="font-size:9.5px; margin-top:3px; background:#08090b; padding:3px 5px; border-radius:2px; border:1px solid #1f1f1f;">
+        <div>• Hiệu lực hiện tại: <b style="color:#22c55e;">${curEffect}</b></div>
+        ${!isMax ? `<div>• Cấp tiếp theo: <span style="color:#ffd700;">${nextEffect}</span></div>` : ''}
+      </div>
+    `;
+
+    container.appendChild(box);
+  });
+}
+
+function upgradeSkill(skillId, maxLvl) {
+  if (G.skillPoints <= 0) {
+    alert("Không đủ Điểm Kỹ Năng! Hãy tăng cấp nhân vật hoặc hoàn thành nhiệm vụ để nhận thêm.");
+    return;
+  }
+  const curLvl = G.skillAllocations[skillId] || 0;
+  if (curLvl >= maxLvl) {
+    alert("Kỹ năng đã đạt cấp độ tối đa!");
+    return;
+  }
+
+  G.skillPoints--;
+  G.skillAllocations[skillId] = curLvl + 1;
+
+  const currentSectSkills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
+  const sk = currentSectSkills.find(s => s.id === skillId);
+  const skName = sk ? sk.name : skillId;
+
+  addLog(`<b style="color:#38bdf8;">★ NÂNG CẤP KỸ NĂNG: [${skName}] thăng lên Cấp ${G.skillAllocations[skillId]}!</b>`);
+
+  renderSkillTree();
+  updateF3UI();
+  saveGame();
+}
+
+function resetSkillPoints() {
+  const currentSectSkills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
+  let refunded = 0;
+
+  currentSectSkills.forEach(sk => {
+    const lvl = G.skillAllocations[sk.id] || 0;
+    if (lvl > 0) {
+      refunded += lvl;
+      G.skillAllocations[sk.id] = 0;
+    }
+  });
+
+  G.skillPoints += refunded;
+
+  addLog(`<b style="color:#ffd700;">Đã hoàn trả ${refunded} Điểm Kỹ Năng!</b>`);
+  renderSkillTree();
+  updateF3UI();
+  saveGame();
+}
+
+/* ==========================================================================
+   6. HIỂN THỊ TÚI ĐỒ & SO SÁNH TRANG BỊ
    ========================================================================== */
 function resolveEquippedHiddenAttrs() {
   let activeCount = 0;
@@ -1545,7 +1886,6 @@ function getItemFullStatsHtml(item) {
   if (item.stats.hpRegen) html += `• Hồi Sinh Lực: +${Math.floor(item.stats.hpRegen * enhanceMult)} HP/s<br>`;
   html += `</div>`;
 
-  // Hiển thị Dòng Phụ Ngẫu Nhiên
   if (Array.isArray(item.extraAffixes) && item.extraAffixes.length > 0) {
     html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
     html += `<div style="color:#38bdf8; font-size:9px; font-weight:bold;">[THUỘC TÍNH PHỤ RANDOM]</div>`;
@@ -1555,7 +1895,6 @@ function getItemFullStatsHtml(item) {
     html += `</div>`;
   }
 
-  // Hiển thị Dòng Ẩn Ngũ Hành
   if (item.hiddenStats) {
     const isAct = item.isSecretActive;
     html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
@@ -1566,7 +1905,6 @@ function getItemFullStatsHtml(item) {
     </div>`;
   }
 
-  // Hiển thị Dòng Thần Thoại Bạch Kim
   if (item.quality === "BACH_KIM" && item.bachKimStat) {
     html += `<div style="border-top:1px solid #ec4899; margin-top:3px; padding-top:2px;">`;
     html += `<div style="color:#ec4899; font-size:9px; font-weight:bold;">[THUỘC TÍNH THẦN THOẠI BẠCH KIM]</div>`;
@@ -1648,7 +1986,6 @@ function confirmEquipWithInheritance() {
 
   const oldItem = G.equipped[newItem.slot];
 
-  // KẾ THỪA CƯỜNG HÓA TỰ ĐỘNG
   if (oldItem && oldItem.enhance > 0) {
     const inheritedLevel = Math.max(newItem.enhance, oldItem.enhance);
     newItem.enhance = inheritedLevel;
@@ -1727,7 +2064,7 @@ function sortInventory() {
 }
 
 /* ==========================================================================
-   6. HỆ THỐNG LÒ RÈN TOÀN DIỆN (CƯỜNG HÓA / TIẾN PHẨM / CHUYỂN HỆ)
+   7. HỆ THỐNG LÒ RÈN TOÀN DIỆN
    ========================================================================== */
 function switchForgeTab(mode) {
   currentForgeMode = mode;
@@ -1882,7 +2219,6 @@ function executeForgeAction() {
 
     item.quality = cfg.next;
 
-    // Tăng uy lực dòng ẩn
     if (item.hiddenStats && item.hiddenStats.val) {
       item.hiddenStats.val = Math.floor(item.hiddenStats.val * 1.35);
       if (item.hiddenStats.statKey === "elementalAtk") {
@@ -1900,7 +2236,6 @@ function executeForgeAction() {
       }
     }
 
-    // Tự động sinh thêm 1 dòng thuộc tính phụ mới khi tiến phẩm!
     if (!Array.isArray(item.extraAffixes)) item.extraAffixes = [];
     const existingKeys = new Set(item.extraAffixes.map(a => a.key));
     const tier = item.tier || 1;
@@ -1971,7 +2306,7 @@ function executeChangeElement(targetElem) {
 }
 
 /* ==========================================================================
-   7. BẢN ĐỒ & KỸ NĂNG
+   8. BẢN ĐỒ
    ========================================================================== */
 function getMapConfig(mapId) {
   for (const cat of ["train", "boss"]) {
@@ -2029,55 +2364,8 @@ function selectMap(mapId) {
   spawnEnemy();
 }
 
-function renderSkillTree() {
-  const container = document.getElementById('skill-tree-list');
-  container.innerHTML = "";
-  document.getElementById('ui-skill-pts').innerText = G.skillPoints;
-
-  const skills = SECT_SKILLS_DB[G.activeSect] || SECT_SKILLS_DB.vo_mon_phai;
-  skills.forEach(sk => {
-    const curLvl = G.skillAllocations[sk.id] || 0;
-    const row = document.createElement('div');
-    row.style.background = "#121212";
-    row.style.border = "1px solid #333";
-    row.style.padding = "6px";
-    row.style.marginBottom = "5px";
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.justifyContent = "space-between";
-
-    row.innerHTML = `
-      <div style="flex:1;">
-        <div style="font-weight:bold; color:#ffd700; font-size:11px;">
-          ${sk.name} <span style="color:#38bdf8;">(Cấp ${curLvl}/${sk.maxLvl})</span>
-        </div>
-        <div style="font-size:9.5px; color:#888;">${sk.desc}</div>
-      </div>
-      <button class="btn-action" style="padding:4px 8px; font-weight:bold;" onclick="upgradeSkill('${sk.id}', ${sk.maxLvl})">+ Nâng</button>
-    `;
-    container.appendChild(row);
-  });
-}
-
-function upgradeSkill(skillId, maxLvl) {
-  if (G.skillPoints <= 0) {
-    alert("Không đủ Điểm Kỹ Năng! Hãy tăng cấp nhân vật.");
-    return;
-  }
-  const curLvl = G.skillAllocations[skillId] || 0;
-  if (curLvl >= maxLvl) {
-    alert("Kỹ năng đã đạt cấp tối đa!");
-    return;
-  }
-  G.skillPoints--;
-  G.skillAllocations[skillId] = curLvl + 1;
-  addLog(`<b style="color:#38bdf8;">Nâng cấp kỹ năng thành công! Cấp hiện tại: ${G.skillAllocations[skillId]}</b>`);
-  renderSkillTree();
-  updateF3UI();
-}
-
 /* ==========================================================================
-   8. ĐỒ HỌA PIXIJS CANVAS
+   9. ĐỒ HỌA PIXIJS CANVAS
    ========================================================================== */
 const canvasBox = document.getElementById('canvas-container');
 const app = new PIXI.Application({
@@ -2226,7 +2514,7 @@ function showDamageNumber(dmg, isCrit, isLifeSteal = false) {
 }
 
 /* ==========================================================================
-   9. VÒNG LẶP GIAO TRANH THỰC CHIẾN
+   10. VÒNG LẶP GIAO TRANH THỰC CHIẾN
    ========================================================================== */
 function combatTick() {
   const stats = calculateHeroStats();
@@ -2241,9 +2529,18 @@ function combatTick() {
   let isUlt = false;
   if (G.rage >= 100) {
     isUlt = true;
-    baseDmg = Math.floor(baseDmg * SECT_CONFIG[G.activeSect].ultMult);
+
+    // Tìm bonus từ chiêu Trấn phái
+    const currentSectSkills = SECT_SKILLS_DB[G.activeSect] || [];
+    const ultSkill = currentSectSkills.find(s => s.type === "ult");
+    const ultLvl = ultSkill ? (G.skillAllocations[ultSkill.id] || 0) : 0;
+    const ultBonusMult = (ultSkill && typeof ultSkill.statMods === 'function') ? (ultSkill.statMods(ultLvl).ultMultBonus || 0) : 0;
+
+    const totalUltMult = SECT_CONFIG[G.activeSect].ultMult + ultBonusMult;
+    baseDmg = Math.floor(baseDmg * totalUltMult);
+
     G.rage = 0;
-    addLog(`<span style="color:#ffd700;">★ Xuất tuyệt chiêu: [${SECT_CONFIG[G.activeSect].ultName}]!</span>`);
+    addLog(`<span style="color:#ffd700;">★ Xuất tuyệt chiêu: [${SECT_CONFIG[G.activeSect].ultName}] (x${totalUltMult.toFixed(2)} ST)!</span>`);
   } else {
     G.rage = Math.min(100, G.rage + 20);
   }
@@ -2300,7 +2597,6 @@ function handleEnemyDefeat() {
     G.kills++;
     if (Math.random() < 0.25) G.crystals += 1;
 
-    // Rơi trang bị ngẫu nhiên phẩm chất và độ hoàn hảo
     if (Math.random() < 0.16 && G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
@@ -2356,7 +2652,7 @@ function challengeBoss() {
 setInterval(combatTick, 900);
 
 /* ==========================================================================
-   10. LÊN CẤP, NHIỆM VỤ & BÁI SƯ
+   11. LÊN CẤP, NHIỆM VỤ & BÁI SƯ
    ========================================================================== */
 function getExpReq(lvl) {
   return Math.floor(90 * Math.pow(1.25, lvl - 1));
@@ -2368,7 +2664,7 @@ function addExp(amount) {
   while (G.exp >= req) {
     G.exp -= req;
     G.level++;
-    G.skillPoints++;
+    G.skillPoints += 1;
     G.sectProfiles[G.activeSect].free += 5;
     addLog(`<b style="color:#ffd700;">★ THĂNG CẤP! Đạt Cấp ${G.level} (+5 Tiềm Năng, +1 Điểm Kỹ Năng)!</b>`);
 
@@ -2512,7 +2808,7 @@ function navigateTab(tabId) {
 }
 
 /* ==========================================================================
-   11. KHỞI CHẠY HỆ THỐNG
+   12. KHỞI CHẠY HỆ THỐNG
    ========================================================================== */
 checkOffline();
 drawPlayerModel();
