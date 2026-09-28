@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Võ Lâm AFK H5 - Lò Rèn Tiến Phẩm Bạch Kim</title>
+  <title>Võ Lâm AFK H5 - Hệ Thống Trang Bị 10 Cấp VLTK 1</title>
   <!-- Pixi.js Canvas Engine v7 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
   <style>
@@ -347,7 +347,7 @@
       cursor: default;
     }
 
-    /* LÒ RÈN TÍNH NĂNG CON (SUB-TABS) */
+    /* LÒ RÈN TÍNH NĂNG CON */
     .forge-subtabs {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -370,7 +370,7 @@
       color: #fff;
     }
 
-    /* BẢN ĐỒ & DÃ TẨU */
+    /* BẢN ĐỒ */
     .map-card-list {
       display: flex;
       flex-direction: column;
@@ -449,7 +449,7 @@
   <div class="top-header">
     <div>Hiệp Khách: <span class="header-stat" id="ui-char-name">Vô Danh</span> (<span id="ui-lvl" style="color:#ffd700;">Lv.1</span>)</div>
     <div>Bạc: <span class="header-stat" id="ui-silver" style="color:#fff;">800</span></div>
-    <div>H.Tinh: <span class="header-stat" id="ui-crystals" style="color:#a855f7;">5</span></div>
+    <div>H.Tinh: <span class="header-stat" id="ui-crystals" style="color:#a855f7;">8</span></div>
     <button class="btn-reset-char" title="Xóa dữ liệu tạo lại từ Lv 1" onclick="promptResetCharacter()">Tạo Lại</button>
   </div>
   <div class="exp-bar-container">
@@ -513,7 +513,7 @@
         Thu hoạch dự kiến: <b id="ui-afk-exp" style="color:#38bdf8;">80 EXP/phút</b> | <b id="ui-afk-silver" style="color:#ffd700;">45 Bạc/phút</b>
       </div>
       <div style="font-size: 10px; color: var(--color-text-secondary); margin-bottom: 6px;">
-        Nhân vật tự động xuất chiêu diệt quái. Quái rơi Bạc, EXP, Huyền Tinh và Trang Bị theo thuộc tính từng vị trí.
+        Quái dã ngoại rơi Bạc, EXP, Huyền Tinh và Trang Bị chuẩn cấp bậc VLTK 1 (Cấp 1 đến Cấp 10).
       </div>
       <button class="btn-action" style="width:100%; background:#450a0a; border-color:#ef4444; color:#ffcccc; font-weight:bold; display:none;" id="boss-btn" onclick="challengeBoss()">KHIÊU CHIẾN BOSS BẢN ĐỒ</button>
     </div>
@@ -658,10 +658,9 @@
   <div class="tab-view" id="tab-forge">
     <div class="panel-header">
       <span>LÒ RÈN HUYỀN TINH</span>
-      <span>Huyền Tinh: <b id="ui-forge-crystals" style="color:#a855f7;">5</b></span>
+      <span>Huyền Tinh: <b id="ui-forge-crystals" style="color:#a855f7;">8</b></span>
     </div>
 
-    <!-- 3 CHẾ ĐỘ LÒ RÈN -->
     <div class="forge-subtabs">
       <button class="forge-subtab-btn active" id="f-tab-enhance" onclick="switchForgeTab('enhance')">CƯỜNG HÓA</button>
       <button class="forge-subtab-btn" id="f-tab-quality" onclick="switchForgeTab('quality')">TIẾN PHẨM</button>
@@ -674,10 +673,8 @@
       <div style="font-size:10px; color:#aaa; margin-bottom:4px;" id="ui-forge-desc-line">...</div>
       <div style="font-size:10.5px; font-weight:bold; color:#f59e0b; margin-bottom:8px;" id="ui-forge-cost-line">Chi phí: 0 Bạc + 0 Huyền Tinh</div>
 
-      <!-- Nút hành động tương ứng theo subtab -->
       <button class="btn-action" id="ui-forge-action-btn" style="width:100%; background:#b45309; color:#fff; font-weight:bold; padding:7px;" onclick="executeForgeAction()">THỰC HIỆN</button>
 
-      <!-- Khung chọn hệ nếu ở subtab Chuyển Hệ -->
       <div id="forge-element-picker" style="display:none; grid-template-columns:repeat(5, 1fr); gap:3px; margin-top:8px;">
         <button class="btn-action" style="color:#ffd700;" onclick="executeChangeElement('KIM')">KIM</button>
         <button class="btn-action" style="color:#22c55e;" onclick="executeChangeElement('MOC')">MỘC</button>
@@ -694,11 +691,11 @@
   <!-- COMBAT LOG -->
   <div id="combat-log-stream"></div>
 
-  <!-- MODAL SO SÁNH TRANG BỊ ĐẦY ĐỦ THUỘC TÍNH -->
+  <!-- MODAL SO SÁNH TRANG BỊ CHI TIẾT -->
   <div class="modal-overlay" id="compare-modal">
     <div class="modal-box">
       <div class="panel-header">
-        <span>SO SÁNH TRANG BỊ CHI TIẾT</span>
+        <span>SO SÁNH TRANG BỊ VLTK 1</span>
         <span style="cursor:pointer;" onclick="closeCompareModal()">✕</span>
       </div>
 
@@ -757,7 +754,7 @@
 
 <script>
 /* ==========================================================================
-   1. CẤU HÌNH NGŨ HÀNH & HỆ THỐNG TRANG BỊ CHUYÊN BIỆT
+   1. BỘ DỮ LIỆU TRANG BỊ 10 CẤP BẬC VÕ LÂM TRUYỀN KỲ 1 PC (TIER 1 ĐẾN 10)
    ========================================================================== */
 function safeNum(val, fallback = 0) {
   const n = Number(val);
@@ -855,17 +852,116 @@ const SECT_SKILLS_DB = {
 // CẤU HÌNH BẢN ĐỒ
 const MAPS_DATABASE = {
   train: [
-    { id: "map_balang", name: "Ba Lăng Huyện", reqLvl: 1, elem: "MOC", expRate: 60, silverRate: 35, bossName: "Đầu Mục Ba Lăng" },
-    { id: "map_phuongtuong", name: "Phượng Tường Phủ", reqLvl: 15, elem: "HOA", expRate: 140, silverRate: 80, bossName: "Đầu Lĩnh Hỏa Kỳ" },
-    { id: "map_bienkinh", name: "Biện Kinh Ngoại Thành", reqLvl: 30, elem: "THO", expRate: 260, silverRate: 150, bossName: "Thổ Phỉ Thần Tiễn" },
-    { id: "map_tuongduong", name: "Tương Dương Thành", reqLvl: 50, elem: "KIM", expRate: 480, silverRate: 280, bossName: "Kim Giáp Thiết Thống" },
-    { id: "map_samac", name: "Sa Mạc Địa Biểu", reqLvl: 70, elem: "THUY", expRate: 850, silverRate: 520, bossName: "Băng Tinh Sa Quái" }
+    { id: "map_balang", name: "Ba Lăng Huyện", reqLvl: 1, minDropTier: 1, maxDropTier: 2, elem: "MOC", expRate: 60, silverRate: 35, bossName: "Đầu Mục Ba Lăng" },
+    { id: "map_phuongtuong", name: "Phượng Tường Phủ", reqLvl: 15, minDropTier: 2, maxDropTier: 3, elem: "HOA", expRate: 140, silverRate: 80, bossName: "Đầu Lĩnh Hỏa Kỳ" },
+    { id: "map_bienkinh", name: "Biện Kinh Ngoại Thành", reqLvl: 30, minDropTier: 4, maxDropTier: 5, elem: "THO", expRate: 260, silverRate: 150, bossName: "Thổ Phỉ Thần Tiễn" },
+    { id: "map_tuongduong", name: "Tương Dương Thành", reqLvl: 50, minDropTier: 6, maxDropTier: 7, elem: "KIM", expRate: 480, silverRate: 280, bossName: "Kim Giáp Thiết Thống" },
+    { id: "map_samac", name: "Sa Mạc Địa Biểu", reqLvl: 70, minDropTier: 8, maxDropTier: 9, elem: "THUY", expRate: 850, silverRate: 520, bossName: "Băng Tinh Sa Quái" }
   ],
   boss: [
-    { id: "boss_lamyy", name: "Thủ Lĩnh: Lam Y Y", reqLvl: 25, elem: "THUY", hpMult: 8, desc: "Rơi trang bị Hoàng Kim môn phái" },
-    { id: "boss_cobac", name: "Thủ Lĩnh: Cổ Bách", reqLvl: 45, elem: "HOA", hpMult: 12, desc: "Rơi trang bị Hoàng Kim / Bạch Kim" },
-    { id: "boss_docco", name: "Minh Chủ: Độc Cô Kiếm", reqLvl: 65, elem: "KIM", hpMult: 18, desc: "Rơi Thần Binh Tối Thượng" }
+    { id: "boss_lamyy", name: "Thủ Lĩnh: Lam Y Y", reqLvl: 25, minDropTier: 8, maxDropTier: 10, elem: "THUY", hpMult: 8, desc: "Rơi trang bị Hoàng Kim môn phái Cấp 8-10" },
+    { id: "boss_cobac", name: "Thủ Lĩnh: Cổ Bách", reqLvl: 45, minDropTier: 9, maxDropTier: 10, elem: "HOA", hpMult: 12, desc: "Rơi trang bị Hoàng Kim / Bạch Kim Cấp 9-10" },
+    { id: "boss_docco", name: "Minh Chủ: Độc Cô Kiếm", reqLvl: 65, minDropTier: 10, maxDropTier: 10, elem: "KIM", hpMult: 18, desc: "Rơi Thần Binh Tối Thượng Cấp 10" }
   ]
+};
+
+/**
+ * BẢNG TÊN TRANG BỊ CHUẨN NGUYÊN BẢN VÕ LÂM TRUYỀN KỲ 1 PC (CẤP 1 ĐẾN 10)
+ */
+const VLTK_ITEM_TIERS_DB = {
+  1: {
+    reqLvl: 1,
+    weapon: ["Mộc Kiếm", "Phác Đao", "Mộc Côn", "Phi Đao"],
+    helm:   ["Khăn Vải Thô", "Thảo Mạo"],
+    armor:  ["Bố Y", "Thô Y"],
+    ring:   ["Đồng Nhẫn", "Hoàng Ngọc Giới Chỉ"],
+    boots:  ["Thảo Hài", "Giày Cỏ"],
+    amulet: ["Đồng Hạng Liên", "Lục Tùng Thạch Hạng Liên"]
+  },
+  2: {
+    reqLvl: 10,
+    weapon: ["Đoản Kiếm", "Liễu Diệp Đao", "Trúc Bổng", "Thấu Cốt Đinh"],
+    helm:   ["Thanh Bố Mão", "Bì Mão"],
+    armor:  ["Đay Y", "Bì Y"],
+    ring:   ["Thiết Giới Chỉ", "Thanh Ngọc Giới Chỉ"],
+    boots:  ["Bố Hài", "Vải Hài"],
+    amulet: ["San Hô Hạng Liên", "Ngân Hạng Liên"]
+  },
+  3: {
+    reqLvl: 20,
+    weapon: ["Thanh Phong Kiếm", "Đoản Đao", "Tề Mi Côn", "Phi Tiêu"],
+    helm:   ["Đồng Khôi", "Thiết Bì Mão"],
+    armor:  ["Sa Y", "Vũ Sam"],
+    ring:   ["Tích Giới Chỉ", "Bạch Ngọc Giới Chỉ"],
+    boots:  ["Bì Hài", "Thú Bì Hài"],
+    amulet: ["Miêu Nhãn Hạng Liên", "Kim Hạng Liên"]
+  },
+  4: {
+    reqLvl: 30,
+    weapon: ["Tùng Vân Kiếm", "Trảm Mã Đao", "Giáng Ma Côn", "Đoạt Hồn Tiêu"],
+    helm:   ["Bì Mão", "Đồng Giáp Khôi"],
+    armor:  ["Miên Sam", "Lưu Tiên Sam"],
+    ring:   ["Ngân Nhẫn", "Mặc Ngọc Giới Chỉ"],
+    boots:  ["Đăng Vân Ngoa", "Khinh Vân Hài"],
+    amulet: ["Bạch Kim Hạng Liên", "Hộ Tinh Thạch Hạng Liên"]
+  },
+  5: {
+    reqLvl: 40,
+    weapon: ["Bích Hải Kiếm", "Nhạn Linh Đao", "Bát Quái Côn", "Mai Hoa Tiêu"],
+    helm:   ["Ô Sa Mạo", "Chiến Lang Khôi"],
+    armor:  ["Tơ Y", "Trần Hương Sam"],
+    ring:   ["Kim Nhẫn", "Điền Ngọc Giới Chỉ"],
+    boots:  ["Thiết Hài", "Thiết Giáp Hài"],
+    amulet: ["Ngọc Châu Hạng Liên", "Thủy Tinh Hạng Liên"]
+  },
+  6: {
+    reqLvl: 50,
+    weapon: ["Thất Tinh Kiếm", "Bách Luyện Đao", "Xà Mâu Côn", "Tụ Lực Tiễn"],
+    helm:   ["Thiết Khôi", "Chấn Võ Mão"],
+    armor:  ["Cẩm Y", "Hổ Bì Giáp"],
+    ring:   ["Điền Ngọc Giới Chỉ", "Hổ Phách Giới Chỉ"],
+    boots:  ["Cẩm Ngoa", "Bách Binh Hài"],
+    amulet: ["Hổ Phách Hạng Liên", "Bích Ngọc Hạng Liên"]
+  },
+  7: {
+    reqLvl: 60,
+    weapon: ["Tàn Hồng Kiếm", "Cửu Hoàn Đao", "Phục Hổ Côn", "Truy Hồn Tiêu"],
+    helm:   ["Bát Bảo Mão", "Huyền Thiết Khôi"],
+    armor:  ["Bách Luyện Giáp", "Hắc Kim Y"],
+    ring:   ["Phỉ Thúy Giới Chỉ", "Bạch Ngọc Nhẫn"],
+    boots:  ["Chiến Ngoa", "Chấn Võ Hài"],
+    amulet: ["Bạch Phỉ Thúy Hạng Liên", "Khổng Tước Hạng Liên"]
+  },
+  8: {
+    reqLvl: 70,
+    weapon: ["Tùng Phong Kiếm", "Kim Bối Đao", "Hám Thiên Côn", "Xuyên Tâm Tiễn"],
+    helm:   ["Chiến Khôi", "Phụng Hoàng Mão"],
+    armor:  ["Sa Trường Y", "Tích Lịch Giáp"],
+    ring:   ["Huyết Thạch Giới", "Hồng Bảo Thạch Giới Chỉ"],
+    boots:  ["Phi Vân Ngoa", "Đạp Tuyết Ngoa"],
+    amulet: ["Khổng Tước Thạch Hạng Liên", "Hồng Phỉ Thúy Hạng Liên"]
+  },
+  9: {
+    reqLvl: 80,
+    weapon: ["Trạm Lư Kiếm", "Huyền Nguyệt Đao", "Thiên Cơ Côn", "Lôi Hỏa Tiêu"],
+    helm:   ["Kim Quan", "Thái Dương Mão"],
+    armor:  ["Huyền Võ Giáp", "Thất Bảo Cà Sa"],
+    ring:   ["Lam Bảo Thạch Giới Chỉ", "Hắc Diệu Thạch Nhẫn"],
+    boots:  ["Bát Bảo Hài", "Thiên Hạc Ngoa"],
+    amulet: ["Trân Châu Hạng Liên", "Tử Phỉ Thúy Hạng Liên"]
+  },
+  10: {
+    reqLvl: 90,
+    weapon: [
+      "Du Long Kiếm", "Long Đao", "Cửu Hoàn Trượng", "Bão Vũ Lê Hoa Châm",
+      "Cập Phong Chân Vũ Kiếm", "Tứ Không Giáng Ma Đao", "Vô Gián Côn", "Địch Khái Lục Ngọc Trượng", "Băng Hàn U Uẩn Đao"
+    ],
+    helm:   ["Tử Kim Quan", "Đạo Mão", "Định Quốc Tử Kim Khôi", "Vạn Chúng Tề Tâm Mão"],
+    armor:  ["Thiên Tằm Bảo Y", "Cà Sa Phật Quang", "Thái Cực Bào", "Định Quốc Sa Trường Y"],
+    ring:   ["Toàn Thạch Giới Chỉ", "An Bang Kê Huyết Thạch Chỉ Hoàn", "An Bang Điền Hoàng Thạch Chỉ Hoàn"],
+    boots:  ["Cửu Châu Hài", "Ngự Phong Hài", "Định Quốc Bát Bảo Hài"],
+    amulet: ["Toàn Thạch Hạng Liên", "An Bang Băng Tinh Liên", "Lục Phỉ Thúy Hộ Thân Phù"]
+  }
 };
 
 /* ==========================================================================
@@ -905,9 +1001,9 @@ function getDefaultState() {
 }
 
 let G = getDefaultState();
-let enemy = { name: "Heo Rừng Nhỏ", elem: "MOC", maxHp: 120, hp: 120, isBoss: false };
+let enemy = { name: "Heo Rừng Ba Lăng", elem: "MOC", maxHp: 120, hp: 120, isBoss: false };
 let currentForgeSlot = "weapon";
-let currentForgeMode = "enhance"; // 'enhance' | 'quality' | 'element'
+let currentForgeMode = "enhance";
 let inspectingInvIndex = null;
 let pendingCeremonySect = "thieu_lam";
 
@@ -978,27 +1074,34 @@ function closeOfflineModal() {
 }
 
 /* ==========================================================================
-   3. HỆ THỐNG THUỘC TÍNH CHUYÊN BIỆT THEO VỊ TRÍ TRANG BỊ
+   3. HÀM TẠO TRANG BỊ THEO 10 CẤP BẬC VÀ BẢN ĐỒ VLTK 1 PC
    ========================================================================== */
-const ITEM_NAMES_POOL = {
-  weapon: ["Tàn Hồng Kiếm", "Long Đao", "Cửu Hoàn Trượng", "Bảo Bổng", "Truy Hồn Tiêu"],
-  helm:   ["Bát Bảo Mão", "Định Quốc Khôi", "Đạo Mão", "Khăn Vải Thô"],
-  armor:  ["Sa Trường Y", "Cà Sa Phật Quang", "Thái Cực Bào", "Thiên Tằm Giáp"],
-  ring:   ["Huyết Thạch Giới", "An Bang Giới Chỉ", "Thúy Vân Thạch"],
-  boots:  ["Phi Vân Ngoa", "Cửu Châu Hài", "Đoạt Phong Hài"],
-  amulet: ["Băng Tinh Liên", "Bạch Hổ Bội", "Hoàng Ngọc Bội"]
-};
+function getTierByLevel(lvl) {
+  if (lvl < 10) return 1;
+  if (lvl < 20) return 2;
+  if (lvl < 30) return 3;
+  if (lvl < 40) return 4;
+  if (lvl < 50) return 5;
+  if (lvl < 60) return 6;
+  if (lvl < 70) return 7;
+  if (lvl < 80) return 8;
+  if (lvl < 90) return 9;
+  return 10;
+}
 
-function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
+function createRandomItem(slot, quality = "HIEM", targetTier = null) {
   const elems = ["KIM", "MOC", "THUY", "HOA", "THO"];
   const elem = elems[Math.floor(Math.random() * elems.length)];
-  const pool = ITEM_NAMES_POOL[slot] || ["Bảo Vật"];
-  const name = pool[Math.floor(Math.random() * pool.length)];
+
+  const tier = targetTier !== null ? Math.max(1, Math.min(10, targetTier)) : getTierByLevel(G.level);
+  const tierConfig = VLTK_ITEM_TIERS_DB[tier] || VLTK_ITEM_TIERS_DB[1];
+  const namePool = tierConfig[slot] || ["Bảo Vật"];
+  const name = namePool[Math.floor(Math.random() * namePool.length)];
 
   let mult = 1.0;
-  if (quality === "THUONG") mult = 0.8;
-  else if (quality === "HOANG_KIM") mult = 1.6;
-  else if (quality === "BACH_KIM") mult = 2.4;
+  if (quality === "THUONG") mult = 0.85;
+  else if (quality === "HOANG_KIM") mult = 1.7;
+  else if (quality === "BACH_KIM") mult = 2.5;
 
   const stats = {
     atk: 0, def: 0, hp: 0, mp: 0, critRate: 0, critDmg: 0,
@@ -1007,51 +1110,51 @@ function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
 
   const hiddenStats = { statKey: "", val: 0, desc: "" };
 
+  // Tính chỉ số theo Cấp bậc (Tier) và Phẩm chất
   if (slot === "weapon") {
-    stats.atk = Math.floor((35 + minLvl * 8) * mult);
-    stats.critRate = Math.floor((4 + Math.random() * 5) * (mult > 1 ? 1.3 : 1));
-    stats.pierce = Math.floor(5 * mult);
+    stats.atk = Math.floor((25 + tier * 18) * mult);
+    stats.critRate = Math.floor((3 + tier * 0.8) * (mult > 1 ? 1.2 : 1));
+    stats.pierce = Math.floor((2 + tier * 1.5) * mult);
     hiddenStats.statKey = "elementalAtk";
-    hiddenStats.val = Math.floor(40 + minLvl * 10);
+    hiddenStats.val = Math.floor(30 + tier * 25);
     hiddenStats.desc = `Băng Sát Ngoại Công +${hiddenStats.val}`;
   } else if (slot === "helm") {
-    stats.def = Math.floor((15 + minLvl * 3.5) * mult);
-    stats.hp = Math.floor((60 + minLvl * 20) * mult);
-    stats.hpRegen = Math.floor(4 * mult);
+    stats.def = Math.floor((12 + tier * 7) * mult);
+    stats.hp = Math.floor((50 + tier * 45) * mult);
+    stats.hpRegen = Math.floor((3 + tier * 1.5) * mult);
     hiddenStats.statKey = "recovery";
-    hiddenStats.val = Math.floor(15 * mult);
+    hiddenStats.val = Math.floor(10 + tier * 2.5);
     hiddenStats.desc = `Thời Gian Phục Hồi -${hiddenStats.val}%`;
   } else if (slot === "armor") {
-    stats.def = Math.floor((30 + minLvl * 6) * mult);
-    stats.hp = Math.floor((120 + minLvl * 30) * mult);
-    stats.allResist = Math.floor(6 * mult);
+    stats.def = Math.floor((25 + tier * 14) * mult);
+    stats.hp = Math.floor((100 + tier * 70) * mult);
+    stats.allResist = Math.floor((4 + tier * 1.8) * mult);
     hiddenStats.statKey = "allResist";
-    hiddenStats.val = Math.floor(12 * mult);
+    hiddenStats.val = Math.floor(8 + tier * 2.2);
     hiddenStats.desc = `Kháng Tất Cả +${hiddenStats.val}%`;
   } else if (slot === "ring") {
-    stats.atk = Math.floor((15 + minLvl * 4) * mult);
-    stats.mp = Math.floor((80 + minLvl * 20) * mult);
-    stats.critRate = Math.floor(6 * mult);
+    stats.atk = Math.floor((12 + tier * 8) * mult);
+    stats.mp = Math.floor((60 + tier * 40) * mult);
+    stats.critRate = Math.floor((4 + tier * 0.9) * mult);
     hiddenStats.statKey = "critDmg";
-    hiddenStats.val = Math.floor(25 * mult);
+    hiddenStats.val = Math.floor(15 + tier * 3.5);
     hiddenStats.desc = `Sát Thương Bạo Kích +${hiddenStats.val}%`;
   } else if (slot === "boots") {
-    stats.def = Math.floor((12 + minLvl * 3) * mult);
-    stats.eva = Math.floor(6 * mult);
-    stats.hp = Math.floor((50 + minLvl * 15) * mult);
+    stats.def = Math.floor((10 + tier * 6) * mult);
+    stats.eva = Math.floor((5 + tier * 1.2) * mult);
+    stats.hp = Math.floor((40 + tier * 35) * mult);
     hiddenStats.statKey = "eva";
-    hiddenStats.val = Math.floor(10 * mult);
+    hiddenStats.val = Math.floor(8 + tier * 1.8);
     hiddenStats.desc = `Thân Pháp Né Tránh +${hiddenStats.val}%`;
   } else if (slot === "amulet") {
-    stats.hp = Math.floor((80 + minLvl * 25) * mult);
-    stats.mp = Math.floor((60 + minLvl * 15) * mult);
-    stats.allResist = Math.floor(8 * mult);
+    stats.hp = Math.floor((70 + tier * 55) * mult);
+    stats.mp = Math.floor((50 + tier * 30) * mult);
+    stats.allResist = Math.floor((6 + tier * 1.6) * mult);
     hiddenStats.statKey = "lifeSteal";
-    hiddenStats.val = Math.floor(6 * mult);
+    hiddenStats.val = Math.floor(4 + tier * 1.2);
     hiddenStats.desc = `Hút Sinh Lực +${hiddenStats.val}%`;
   }
 
-  // Thuộc tính thần thoại Bạch Kim nếu tạo ra là Bạch Kim
   let bachKimStat = null;
   if (quality === "BACH_KIM") {
     bachKimStat = getMythicStatBySlot(slot);
@@ -1062,8 +1165,9 @@ function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
     name: name,
     slot: slot,
     quality: quality,
+    tier: tier,
     element: elem,
-    levelReq: minLvl,
+    levelReq: tierConfig.reqLvl,
     enhance: 0,
     stats: stats,
     hiddenStats: hiddenStats,
@@ -1073,17 +1177,17 @@ function createRandomItem(slot, quality = "HIEM", minLvl = 1) {
 }
 
 function getMythicStatBySlot(slot) {
-  if (slot === "weapon") return { key: "pierce", val: 15, desc: "Bạch Kim: Xuyên Giáp +15%" };
-  if (slot === "helm")   return { key: "recovery", val: 25, desc: "Bạch Kim: Thời Gian Phục Hồi -25%" };
-  if (slot === "armor")  return { key: "allResist", val: 18, desc: "Bạch Kim: Kháng Tất Cả +18%" };
-  if (slot === "ring")   return { key: "critRate", val: 10, desc: "Bạch Kim: Tỷ Lệ Chí Mạng +10%" };
-  if (slot === "boots")  return { key: "eva", val: 15, desc: "Bạch Kim: Thân Pháp Né Tránh +15%" };
-  if (slot === "amulet") return { key: "lifeSteal", val: 8, desc: "Bạch Kim: Hút Sinh Lực +8%" };
+  if (slot === "weapon") return { key: "pierce", val: 18, desc: "Bạch Kim: Xuyên Giáp +18%" };
+  if (slot === "helm")   return { key: "recovery", val: 30, desc: "Bạch Kim: Thời Gian Phục Hồi -30%" };
+  if (slot === "armor")  return { key: "allResist", val: 20, desc: "Bạch Kim: Kháng Tất Cả +20%" };
+  if (slot === "ring")   return { key: "critRate", val: 12, desc: "Bạch Kim: Tỷ Lệ Chí Mạng +12%" };
+  if (slot === "boots")  return { key: "eva", val: 18, desc: "Bạch Kim: Thân Pháp Né Tránh +18%" };
+  if (slot === "amulet") return { key: "lifeSteal", val: 10, desc: "Bạch Kim: Hút Sinh Lực +10%" };
   return null;
 }
 
 /* ==========================================================================
-   4. BẢNG F3 TOÀN DIỆN & TÍNH TOÁN LỰC CHIẾN
+   4. TÍNH TOÁN BẢNG F3 & LỰC CHIẾN
    ========================================================================== */
 function calculateHeroStats() {
   const prof = G.sectProfiles[G.activeSect] || { str: 10, dex: 10, vit: 10, int: 10 };
@@ -1265,13 +1369,13 @@ function renderInventoryUI() {
       else if (item.stats.hp) mainStatText = `HP +${item.stats.hp}`;
 
       cell.innerHTML = `
-        <div style="font-weight:bold; color:${qInfo.color}; font-size:10px;">${item.name}</div>
-        <div style="font-size:8.5px; color:#888;">[${item.element}] • ${item.slot.toUpperCase()}</div>
+        <div style="font-weight:bold; color:${qInfo.color}; font-size:9.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+        <div style="font-size:8.5px; color:#888;">[${item.element}] • ${item.slot.toUpperCase()} • <b>Cấp ${item.tier || 1}</b></div>
         <div style="font-size:8.5px; color:${qInfo.color}; font-weight:bold;">[${qInfo.name}]</div>
         <div style="font-size:9px; color:#ffd700;">${mainStatText}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1px;">
           <span style="font-size:8.5px; color:#22c55e;">+${item.enhance}</span>
-          <span style="font-size:8px; color:#aaa;">Cấp ${item.levelReq}</span>
+          <span style="font-size:8px; color:${G.level >= item.levelReq ? '#aaa' : '#ef4444'};">Y/c Lv.${item.levelReq}</span>
         </div>
       `;
       cell.onclick = () => openCompareModal(i);
@@ -1306,7 +1410,9 @@ function getItemFullStatsHtml(item) {
   const enhanceMult = 1 + (item.enhance * 0.1);
   const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
 
-  let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Hệ: <b style="color:#ffd700;">${item.element}</b> | Phẩm: <b style="color:${qInfo.color};">${qInfo.name}</b></div>`;
+  let html = `<div style="color:#aaa;">Vị trí: <b>${item.slot.toUpperCase()}</b> | Cấp bậc: <b style="color:#38bdf8;">Cấp ${item.tier || 1}</b></div>`;
+  html += `<div style="color:#aaa;">Ngũ hành: <b style="color:#ffd700;">${item.element}</b> | Phẩm: <b style="color:${qInfo.color};">${qInfo.name}</b></div>`;
+  html += `<div style="color:${G.level >= item.levelReq ? '#22c55e' : '#ef4444'};">Yêu cầu Đẳng cấp: <b>Cấp ${item.levelReq}</b> ${G.level < item.levelReq ? '(Chưa đủ)' : ''}</div>`;
 
   html += `<div style="border-top:1px solid #333; margin-top:3px; padding-top:2px;">`;
   if (item.stats.atk) html += `• Lực Công Kích: +${Math.floor(item.stats.atk * enhanceMult)}<br>`;
@@ -1350,10 +1456,10 @@ function openCompareModal(invIdx) {
 
   const curItem = G.equipped[newItem.slot];
 
-  document.getElementById('cmp-cur-name').innerText = curItem ? `${curItem.name} +${curItem.enhance} [${curItem.element}]` : "Ô đang để trống";
+  document.getElementById('cmp-cur-name').innerText = curItem ? `${curItem.name} +${curItem.enhance} [Cấp ${curItem.tier || 1}]` : "Ô đang để trống";
   document.getElementById('cmp-cur-stats').innerHTML = curItem ? getItemFullStatsHtml(curItem) : "Không có thuộc tính";
 
-  document.getElementById('cmp-new-name').innerText = `${newItem.name} +${newItem.enhance} [${newItem.element}]`;
+  document.getElementById('cmp-new-name').innerText = `${newItem.name} +${newItem.enhance} [Cấp ${newItem.tier || 1}]`;
   document.getElementById('cmp-new-stats').innerHTML = getItemFullStatsHtml(newItem);
 
   const inheritTag = document.getElementById('cmp-inherit-tag');
@@ -1398,6 +1504,11 @@ function confirmEquipWithInheritance() {
   const newItem = G.inventory[inspectingInvIndex];
   if (!newItem) return;
 
+  if (G.level < newItem.levelReq) {
+    alert(`Đẳng cấp chưa đủ! Món đồ này yêu cầu Cấp ${newItem.levelReq}, bạn hiện tại Cấp ${G.level}.`);
+    return;
+  }
+
   const oldItem = G.equipped[newItem.slot];
 
   // KẾ THỪA CƯỜNG HÓA TỰ ĐỘNG
@@ -1405,14 +1516,14 @@ function confirmEquipWithInheritance() {
     const inheritedLevel = Math.max(newItem.enhance, oldItem.enhance);
     newItem.enhance = inheritedLevel;
     oldItem.enhance = 0;
-    addLog(`<b style="color:#22c55e;">[KẾ THỪA] ${newItem.name} kế thừa thành công Cường Hóa +${inheritedLevel}!</b>`);
+    addLog(`<b style="color:#22c55e;">[KẾ THỪA] ${newItem.name} kế thừa Cường Hóa +${inheritedLevel}!</b>`);
   }
 
   G.equipped[newItem.slot] = newItem;
   G.inventory.splice(inspectingInvIndex, 1);
   if (oldItem) G.inventory.push(oldItem);
 
-  addLog(`<b style="color:#38bdf8;">Đã mặc [${newItem.name}] vào ô ${newItem.slot.toUpperCase()}!</b>`);
+  addLog(`<b style="color:#38bdf8;">Đã mặc [${newItem.name}] (Cấp ${newItem.tier || 1})!</b>`);
   closeCompareModal();
   renderInventoryUI();
   saveGame();
@@ -1423,7 +1534,7 @@ function sellCurrentInspected() {
   const item = G.inventory[inspectingInvIndex];
   if (!item) return;
 
-  const price = 200 + item.levelReq * 40 + item.enhance * 250;
+  const price = 150 * (item.tier || 1) + item.enhance * 250;
   G.silver += price;
   G.inventory.splice(inspectingInvIndex, 1);
 
@@ -1454,7 +1565,7 @@ function quickSellNormalGear() {
   for (let i = G.inventory.length - 1; i >= 0; i--) {
     const it = G.inventory[i];
     if (it.quality === "THUONG" && it.enhance === 0) {
-      silverEarned += 200;
+      silverEarned += (100 * (it.tier || 1));
       G.inventory.splice(i, 1);
       count++;
     }
@@ -1467,9 +1578,13 @@ function quickSellNormalGear() {
 
 function sortInventory() {
   const tierWeight = { BACH_KIM: 4, HOANG_KIM: 3, HIEM: 2, THUONG: 1 };
-  G.inventory.sort((a, b) => (tierWeight[b.quality] || 0) - (tierWeight[a.quality] || 0));
+  G.inventory.sort((a, b) => {
+    const qDiff = (tierWeight[b.quality] || 0) - (tierWeight[a.quality] || 0);
+    if (qDiff !== 0) return qDiff;
+    return (b.tier || 1) - (a.tier || 1);
+  });
   renderInventoryUI();
-  addLog("Đã sắp xếp gọn gàng hành trang.");
+  addLog("Đã sắp xếp hành trang theo phẩm chất và cấp bậc.");
 }
 
 /* ==========================================================================
@@ -1527,7 +1642,7 @@ function updateForgeView() {
   }
 
   const qInfo = QUALITY_INFO[item.quality] || QUALITY_INFO.HIEM;
-  nameEl.innerHTML = `<span style="color:${qInfo.color};">${item.name} +${item.enhance}</span> [${qInfo.name}] [${item.element}]`;
+  nameEl.innerHTML = `<span style="color:${qInfo.color};">${item.name} +${item.enhance}</span> [Cấp ${item.tier || 1}] [${qInfo.name}] [${item.element}]`;
 
   if (currentForgeMode === "enhance") {
     elemPicker.style.display = "none";
@@ -1620,7 +1735,6 @@ function executeForgeAction() {
     G.silver -= cfg.silverCost;
     G.crystals -= cfg.crystalCost;
 
-    // Tăng chỉ số theo hệ số phẩm mới
     Object.keys(item.stats).forEach(k => {
       if (item.stats[k]) {
         item.stats[k] = Math.floor(item.stats[k] * cfg.statMult);
@@ -1629,7 +1743,6 @@ function executeForgeAction() {
 
     item.quality = cfg.next;
 
-    // Tăng uy lực dòng ẩn
     if (item.hiddenStats && item.hiddenStats.val) {
       item.hiddenStats.val = Math.floor(item.hiddenStats.val * 1.4);
       if (item.hiddenStats.statKey === "elementalAtk") {
@@ -1647,12 +1760,11 @@ function executeForgeAction() {
       }
     }
 
-    // Nếu đạt phẩm Bạch Kim, ban tặng Dòng Thần Thoại
     if (item.quality === "BACH_KIM") {
       item.bachKimStat = getMythicStatBySlot(item.slot);
-      addLog(`<b style="color:#ec4899;">★ ĐỘT PHÁ BẠCH KIM! Khai mở thuộc tính Thần Thoại: [${item.bachKimStat.desc}]!</b>`);
+      addLog(`<b style="color:#ec4899;">★ ĐỘT PHÁ BẠCH KIM! Ban tặng dòng Thần Thoại: [${item.bachKimStat.desc}]!</b>`);
     } else {
-      addLog(`<b style="color:#ffd700;">★ TIẾN PHẨM THÀNH CÔNG! [${item.name}] đã thăng hoa thành phẩm chất [${cfg.nextName}]!</b>`);
+      addLog(`<b style="color:#ffd700;">★ TIẾN PHẨM THÀNH CÔNG! [${item.name}] thăng hoa thành [${cfg.nextName}]!</b>`);
     }
   }
 
@@ -1723,7 +1835,7 @@ function renderMapList() {
     box.innerHTML = `
       <div>
         <div style="font-weight:bold; color:${isAct ? '#ffd700' : '#fff'}; font-size:11px;">${m.name}</div>
-        <div style="font-size:9.5px; color:#888;">Yêu cầu: Cấp ${m.reqLvl} | Hệ: [${m.elem || 'Đa Hệ'}]</div>
+        <div style="font-size:9.5px; color:#888;">Yêu cầu: Cấp ${m.reqLvl} | Rơi đồ: <b>Cấp ${m.minDropTier || 1} - ${m.maxDropTier || 10}</b></div>
       </div>
       <button class="btn-action" style="font-size:10px; font-weight:bold;" onclick="selectMap('${m.id}')">
         ${isAct ? "ĐANG ĐỨNG" : "CHUYỂN ĐẾN"}
@@ -1947,7 +2059,7 @@ function showDamageNumber(dmg, isCrit, isLifeSteal = false) {
 }
 
 /* ==========================================================================
-   9. VÒNG LẶP GIAO TRANH THỰC CHIẾN TÍCH HỢP TOÀN BỘ THUỘC TÍNH
+   9. VÒNG LẶP GIAO TRANH THỰC CHIẾN
    ========================================================================== */
 function combatTick() {
   const stats = calculateHeroStats();
@@ -2000,15 +2112,17 @@ function handleEnemyDefeat() {
   addExp(expGain);
 
   if (enemy.isBoss) {
-    G.crystals += 2;
-    addLog(`<b style="color:#22c55e;">HẠ GỤC BOSS! Rơi 2 Huyền Tinh & Trang Bị Hoàng Kim.</b>`);
+    G.crystals += 3;
+    addLog(`<b style="color:#22c55e;">HẠ GỤC BOSS! Rơi 3 Huyền Tinh & Báu Vật Hoàng Kim.</b>`);
 
     if (G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
-      const dropped = createRandomItem(rndSlot, "HOANG_KIM", G.level);
+      // Rơi đồ cấp cao tương ứng cấp boss
+      const dropTier = map.maxDropTier || 10;
+      const dropped = createRandomItem(rndSlot, "HOANG_KIM", dropTier);
       G.inventory.push(dropped);
-      addLog(`<b style="color:#ffd700;">★ RƠI TRANG BỊ: [${dropped.name}] (${dropped.quality})!</b>`);
+      addLog(`<b style="color:#ffd700;">★ RƠI TRANG BỊ: [${dropped.name}] (Cấp ${dropped.tier})!</b>`);
       renderInventoryUI();
     }
 
@@ -2020,10 +2134,15 @@ function handleEnemyDefeat() {
     G.kills++;
     if (Math.random() < 0.25) G.crystals += 1;
 
-    if (Math.random() < 0.15 && G.inventory.length < 18) {
+    // Rơi trang bị theo cấp của map
+    if (Math.random() < 0.16 && G.inventory.length < 18) {
       const slots = ["weapon", "helm", "armor", "ring", "boots", "amulet"];
       const rndSlot = slots[Math.floor(Math.random() * slots.length)];
-      const dropped = createRandomItem(rndSlot, "HIEM", G.level);
+      const minT = map.minDropTier || 1;
+      const maxT = map.maxDropTier || 2;
+      const dropTier = Math.floor(minT + Math.random() * (maxT - minT + 1));
+      const quality = Math.random() < 0.3 ? "THUONG" : (Math.random() < 0.85 ? "HIEM" : "HOANG_KIM");
+      const dropped = createRandomItem(rndSlot, quality, dropTier);
       G.inventory.push(dropped);
       renderInventoryUI();
     }
